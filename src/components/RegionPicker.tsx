@@ -1,4 +1,4 @@
-import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo';
+import { geoBounds, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { useImperativeHandle, useLayoutEffect, useRef } from 'react';
 import { continentBlocks } from '../blocks';
 import { CONTINENTS, type ContinentId, type RegionDef } from '../regions';
@@ -6,8 +6,8 @@ import { Badge } from './shared';
 
 const W = 1000;
 const H = 510;
-/** The visible slice of the map: Antarctica, which no quiz includes, is cropped off the bottom. */
-const VIEW = { y: 2, h: 452 };
+/** Room around the land so outlines and the zoom-out fade never touch the edge. */
+const PAD = 14;
 // The --ease-out and --ease-in-out tokens from style.css, for WAAPI.
 const EASE_OUT = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const EASE_IN_OUT = 'cubic-bezier(0.77, 0, 0.175, 1)';
@@ -20,22 +20,32 @@ interface BlockGeo {
   label: [number, number];
 }
 
-let geoCache: { blocks: BlockGeo[]; other: string; sphere: string; graticule: string } | null = null;
+interface View {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+let geoCache: { blocks: BlockGeo[]; other: string; view: View } | null = null;
 
 function pickerGeo() {
   if (geoCache) return geoCache;
   const projection = geoNaturalEarth1().rotate([-11, 0]).fitExtent([[6, 6], [W - 6, H - 6]], { type: 'Sphere' });
   const path = geoPath(projection);
-  const { continents, other } = continentBlocks();
-  geoCache = {
-    blocks: CONTINENTS.map((def) => {
-      const f = continents.get(def.id as ContinentId)!;
-      return { def, id: def.id as ContinentId, d: path(f) ?? '', bounds: path.bounds(f), label: projection(def.label!)! };
-    }),
-    other: other.map((f) => path(f) ?? '').join(''),
-    sphere: path({ type: 'Sphere' }) ?? '',
-    graticule: path(geoGraticule10()) ?? '',
-  };
+  const { continents } = continentBlocks();
+  // Antarctica is in no quiz; leaving it out lets the map end at the land instead of a cropped edge.
+  const other = continentBlocks().other.filter((f) => geoBounds(f)[1][1] > -60);
+  const blocks = CONTINENTS.map((def) => {
+    const f = continents.get(def.id as ContinentId)!;
+    return { def, id: def.id as ContinentId, d: path(f) ?? '', bounds: path.bounds(f), label: projection(def.label!)! };
+  });
+  const all = [...blocks.map((b) => b.bounds), ...other.map((f) => path.bounds(f))];
+  const x0 = Math.min(...all.map((b) => b[0][0])) - PAD;
+  const y0 = Math.min(...all.map((b) => b[0][1])) - PAD;
+  const x1 = Math.max(...all.map((b) => b[1][0])) + PAD;
+  const y1 = Math.max(...all.map((b) => b[1][1])) + PAD;
+  geoCache = { blocks, other: other.map((f) => path(f) ?? '').join(''), view: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } };
   return geoCache;
 }
 
@@ -59,7 +69,7 @@ export function RegionPicker({
   onToggle: (id: ContinentId, animate: boolean) => void;
   ref?: React.Ref<PickerHandle>;
 }) {
-  const { blocks, other, sphere, graticule } = pickerGeo();
+  const { blocks, other, view } = pickerGeo();
   const fills = useRef(new Map<ContinentId, SVGPathElement>());
   const zoomLayer = useRef<SVGGElement>(null);
   /** Where each pending change should pour from, and whether it animates. */
@@ -67,7 +77,7 @@ export function RegionPicker({
   const shown = useRef<Set<ContinentId> | null>(null);
   const intro = useRef(!introPlayed);
 
-  // Selected continents fill with their colour through a circular mask that grows from the click point.
+  // Selected continents trace their outline in colour, revealed by a circular mask that grows from the click point.
   useLayoutEffect(() => {
     const now = new Set(selection);
     if (!shown.current) {
@@ -92,8 +102,8 @@ export function RegionPicker({
   };
 
   /**
-   * The fill is clipped by a CSS circle in the path's own box (fill-box, in map units). Animating an SVG <clipPath>
-   * child doesn't repaint reliably, so the circle lives in `clip-path` on the fill itself.
+   * The coloured outline is clipped by a CSS circle in the path's own box (fill-box, in map units). Animating an SVG
+   * <clipPath> child doesn't repaint reliably, so the circle lives in `clip-path` on the path itself.
    */
   const circle = (b: BlockGeo, r: number, [x, y]: [number, number]) => `circle(${r}px at ${x - b.bounds[0][0]}px ${y - b.bounds[0][1]}px)`;
 
@@ -141,9 +151,9 @@ export function RegionPicker({
       const y0 = Math.min(...picked.map((b) => b.bounds[0][1]));
       const x1 = Math.max(...picked.map((b) => b.bounds[1][0]));
       const y1 = Math.max(...picked.map((b) => b.bounds[1][1]));
-      const k = Math.min(3.2, 0.9 / Math.max((x1 - x0) / W, (y1 - y0) / VIEW.h));
-      const tx = W / 2 - k * ((x0 + x1) / 2);
-      const ty = VIEW.y + VIEW.h / 2 - k * ((y0 + y1) / 2);
+      const k = Math.min(3.2, 0.9 / Math.max((x1 - x0) / view.w, (y1 - y0) / view.h));
+      const tx = view.x + view.w / 2 - k * ((x0 + x1) / 2);
+      const ty = view.y + view.h / 2 - k * ((y0 + y1) / 2);
       return layer
         .animate([{ transform: 'none' }, { transform: `translate(${tx}px, ${ty}px) scale(${k})` }], {
           duration: 380,
@@ -165,16 +175,9 @@ export function RegionPicker({
   };
 
   return (
-    <div className={`picker-map${intro.current ? ' intro' : ''}`}>
-      <svg viewBox={`0 ${VIEW.y} ${W} ${VIEW.h}`} aria-hidden="true">
-        <defs>
-          <pattern id="picker-dots" width="7" height="7" patternUnits="userSpaceOnUse">
-            <circle cx="3.5" cy="3.5" r="0.8" fill="#fff" fillOpacity="0.16" />
-          </pattern>
-        </defs>
+    <div className={`picker-map${intro.current ? ' intro' : ''}`} style={{ aspectRatio: `${view.w} / ${view.h}` }}>
+      <svg viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`} aria-hidden="true">
         <g ref={zoomLayer} className="picker-zoom">
-          <path className="picker-sea" d={sphere} />
-          <path className="picker-graticule" d={graticule} />
           <path className="picker-other" d={other} />
           {blocks.map((b, i) => (
             <g
@@ -190,10 +193,9 @@ export function RegionPicker({
                 ref={(el) => {
                   if (el) fills.current.set(b.id, el);
                 }}
-                className="block-fill"
+                className="block-line"
                 d={b.d}
               />
-              <path className="block-edge" d={b.d} />
             </g>
           ))}
         </g>
@@ -203,7 +205,7 @@ export function RegionPicker({
           key={b.id}
           className="region-pill"
           aria-pressed={selection.includes(b.id)}
-          style={{ left: `${(b.label[0] / W) * 100}%`, top: `${((b.label[1] - VIEW.y) / VIEW.h) * 100}%`, '--line': b.def.color, '--i': i } as React.CSSProperties}
+          style={{ left: `${((b.label[0] - view.x) / view.w) * 100}%`, top: `${((b.label[1] - view.y) / view.h) * 100}%`, '--line': b.def.color, '--i': i } as React.CSSProperties}
           onClick={(e) => toggleAt(b.id, e)}
         >
           <Badge region={b.def} />

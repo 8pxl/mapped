@@ -46,6 +46,8 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  /* No rubber-banding, pull-to-refresh or two-finger swipe back. */
+  overscroll-behavior: none;
 }
 
 body {
@@ -318,7 +320,6 @@ kbd {
 .picker-map {
   position: relative;
   width: 100%;
-  aspect-ratio: 1000 / 452;
 }
 
 .picker-map svg {
@@ -328,23 +329,12 @@ kbd {
   overflow: visible;
 }
 
-.picker-sea {
-  fill: url(#picker-dots);
-  stroke: var(--rule-2);
-  stroke-width: 1;
-}
-
-.picker-graticule {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 0.5;
-  opacity: 0.07;
-}
-
 .picker-other {
-  fill: #121214;
-  stroke: #ffffff26;
-  stroke-width: 0.5;
+  fill: none;
+  stroke: #ffffff1f;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .block {
@@ -358,26 +348,24 @@ kbd {
   transform: scale(0.985);
 }
 
+/* No fills: the land is outlines only. The transparent fill keeps the whole continent clickable. */
 .block-base {
-  fill: color-mix(in srgb, var(--line) 12%, #161618);
-  transition: fill 150ms ease;
-}
-
-.block-fill {
-  fill: var(--line);
-}
-
-.block-edge {
-  fill: none;
-  stroke: var(--line);
-  stroke-width: 1.4;
+  fill: transparent;
+  stroke: #ffffff66;
+  stroke-width: 1;
   stroke-linejoin: round;
-  pointer-events: none;
+  vector-effect: non-scaling-stroke;
   transition: stroke 150ms ease;
 }
 
-.block[aria-pressed='true'] .block-edge {
-  stroke: color-mix(in srgb, var(--line) 55%, white);
+/* A selected continent traces its outline in its colour. */
+.block-line {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
 }
 
 /* Region labels double as the accessible toggles, and as big targets for small regions. */
@@ -418,7 +406,7 @@ kbd {
 
 @media (hover: hover) and (pointer: fine) {
   .block:hover .block-base {
-    fill: color-mix(in srgb, var(--line) 30%, #161618);
+    stroke: color-mix(in srgb, var(--line) 70%, transparent);
   }
 
   .region-pill:hover {
@@ -520,8 +508,18 @@ kbd {
   transition: opacity 200ms var(--ease-out);
 }
 
+/* The map's edges fade into the page, so the zoom out of the menu has no hard frame. */
 #menu .picker-map {
   overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent),
+    linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
+  mask-composite: intersect;
+}
+
+/* Leaving: the zoom runs past the map's box and fills the screen. */
+#menu.leaving .picker-map {
+  overflow: visible;
+  mask-image: none;
 }
 
 #play {
