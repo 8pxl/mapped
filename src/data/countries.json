@@ -1,0 +1,2762 @@
+[
+ {
+  "code": "af",
+  "name": "Afghanistan",
+  "official": "Islamic Republic of Afghanistan",
+  "capital": "Kabul",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   33,
+   65
+  ],
+  "geom": "004"
+ },
+ {
+  "code": "al",
+  "name": "Albania",
+  "official": "Republic of Albania",
+  "capital": "Tirana",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   41,
+   20
+  ],
+  "geom": "008"
+ },
+ {
+  "code": "dz",
+  "name": "Algeria",
+  "official": "People's Democratic Republic of Algeria",
+  "capital": "Algiers",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   28,
+   3
+  ],
+  "geom": "012"
+ },
+ {
+  "code": "ad",
+  "name": "Andorra",
+  "official": "Principality of Andorra",
+  "capital": "Andorra la Vella",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   42.5,
+   1.5
+  ],
+  "geom": "020"
+ },
+ {
+  "code": "ao",
+  "name": "Angola",
+  "official": "Republic of Angola",
+  "capital": "Luanda",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -12.5,
+   18.5
+  ],
+  "geom": "024"
+ },
+ {
+  "code": "ag",
+  "name": "Antigua and Barbuda",
+  "official": "Antigua and Barbuda",
+  "capital": "Saint John's",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   17.05,
+   -61.8
+  ],
+  "geom": "028"
+ },
+ {
+  "code": "ar",
+  "name": "Argentina",
+  "official": "Argentine Republic",
+  "capital": "Buenos Aires",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   -34,
+   -64
+  ],
+  "geom": "032"
+ },
+ {
+  "code": "am",
+  "name": "Armenia",
+  "official": "Republic of Armenia",
+  "capital": "Yerevan",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   40,
+   45
+  ],
+  "geom": "051"
+ },
+ {
+  "code": "au",
+  "name": "Australia",
+  "official": "Commonwealth of Australia",
+  "capital": "Canberra",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -27,
+   133
+  ],
+  "geom": "036"
+ },
+ {
+  "code": "at",
+  "name": "Austria",
+  "official": "Republic of Austria",
+  "capital": "Vienna",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   47.33333333,
+   13.33333333
+  ],
+  "geom": "040"
+ },
+ {
+  "code": "az",
+  "name": "Azerbaijan",
+  "official": "Republic of Azerbaijan",
+  "capital": "Baku",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   40.5,
+   47.5
+  ],
+  "geom": "031"
+ },
+ {
+  "code": "bs",
+  "name": "Bahamas",
+  "official": "Commonwealth of the Bahamas",
+  "capital": "Nassau",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   24.25,
+   -76
+  ],
+  "geom": "044"
+ },
+ {
+  "code": "bh",
+  "name": "Bahrain",
+  "official": "Kingdom of Bahrain",
+  "capital": "Manama",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   26,
+   50.55
+  ],
+  "geom": "048"
+ },
+ {
+  "code": "bd",
+  "name": "Bangladesh",
+  "official": "People's Republic of Bangladesh",
+  "capital": "Dhaka",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   24,
+   90
+  ],
+  "geom": "050"
+ },
+ {
+  "code": "bb",
+  "name": "Barbados",
+  "official": "Barbados",
+  "capital": "Bridgetown",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   13.16666666,
+   -59.53333333
+  ],
+  "geom": "052"
+ },
+ {
+  "code": "by",
+  "name": "Belarus",
+  "official": "Republic of Belarus",
+  "capital": "Minsk",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   53,
+   28
+  ],
+  "geom": "112"
+ },
+ {
+  "code": "be",
+  "name": "Belgium",
+  "official": "Kingdom of Belgium",
+  "capital": "Brussels",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   50.83333333,
+   4
+  ],
+  "geom": "056"
+ },
+ {
+  "code": "bz",
+  "name": "Belize",
+  "official": "Belize",
+  "capital": "Belmopan",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   17.25,
+   -88.75
+  ],
+  "geom": "084"
+ },
+ {
+  "code": "bj",
+  "name": "Benin",
+  "official": "Republic of Benin",
+  "capital": "Porto-Novo",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   9.5,
+   2.25
+  ],
+  "geom": "204"
+ },
+ {
+  "code": "bt",
+  "name": "Bhutan",
+  "official": "Kingdom of Bhutan",
+  "capital": "Thimphu",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   27.5,
+   90.5
+  ],
+  "geom": "064"
+ },
+ {
+  "code": "bo",
+  "name": "Bolivia",
+  "official": "Plurinational State of Bolivia",
+  "capital": "Sucre",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   -17,
+   -65
+  ],
+  "geom": "068"
+ },
+ {
+  "code": "ba",
+  "name": "Bosnia and Herzegovina",
+  "official": "Bosnia and Herzegovina",
+  "capital": "Sarajevo",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   44,
+   18
+  ],
+  "geom": "070"
+ },
+ {
+  "code": "bw",
+  "name": "Botswana",
+  "official": "Republic of Botswana",
+  "capital": "Gaborone",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -22,
+   24
+  ],
+  "geom": "072"
+ },
+ {
+  "code": "br",
+  "name": "Brazil",
+  "official": "Federative Republic of Brazil",
+  "capital": "Brasília",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   -10,
+   -55
+  ],
+  "geom": "076"
+ },
+ {
+  "code": "bn",
+  "name": "Brunei",
+  "official": "Nation of Brunei, Abode of Peace",
+  "capital": "Bandar Seri Begawan",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   4.5,
+   114.66666666
+  ],
+  "geom": "096"
+ },
+ {
+  "code": "bg",
+  "name": "Bulgaria",
+  "official": "Republic of Bulgaria",
+  "capital": "Sofia",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   43,
+   25
+  ],
+  "geom": "100"
+ },
+ {
+  "code": "bf",
+  "name": "Burkina Faso",
+  "official": "Burkina Faso",
+  "capital": "Ouagadougou",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   13,
+   -2
+  ],
+  "geom": "854"
+ },
+ {
+  "code": "bi",
+  "name": "Burundi",
+  "official": "Republic of Burundi",
+  "capital": "Gitega",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -3.5,
+   30
+  ],
+  "geom": "108"
+ },
+ {
+  "code": "kh",
+  "name": "Cambodia",
+  "official": "Kingdom of Cambodia",
+  "capital": "Phnom Penh",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   13,
+   105
+  ],
+  "geom": "116"
+ },
+ {
+  "code": "cm",
+  "name": "Cameroon",
+  "official": "Republic of Cameroon",
+  "capital": "Yaoundé",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   6,
+   12
+  ],
+  "geom": "120"
+ },
+ {
+  "code": "ca",
+  "name": "Canada",
+  "official": "Canada",
+  "capital": "Ottawa",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   60,
+   -95
+  ],
+  "geom": "124"
+ },
+ {
+  "code": "cv",
+  "name": "Cape Verde",
+  "official": "Republic of Cabo Verde",
+  "capital": "Praia",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   16,
+   -24
+  ],
+  "geom": "132"
+ },
+ {
+  "code": "cf",
+  "name": "Central African Republic",
+  "official": "Central African Republic",
+  "capital": "Bangui",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   7,
+   21
+  ],
+  "geom": "140"
+ },
+ {
+  "code": "td",
+  "name": "Chad",
+  "official": "Republic of Chad",
+  "capital": "N'Djamena",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   15,
+   19
+  ],
+  "geom": "148"
+ },
+ {
+  "code": "cl",
+  "name": "Chile",
+  "official": "Republic of Chile",
+  "capital": "Santiago",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   -30,
+   -71
+  ],
+  "geom": "152"
+ },
+ {
+  "code": "cn",
+  "name": "China",
+  "official": "People's Republic of China",
+  "capital": "Beijing",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   35,
+   105
+  ],
+  "geom": "156"
+ },
+ {
+  "code": "co",
+  "name": "Colombia",
+  "official": "Republic of Colombia",
+  "capital": "Bogotá",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   4,
+   -72
+  ],
+  "geom": "170"
+ },
+ {
+  "code": "km",
+  "name": "Comoros",
+  "official": "Union of the Comoros",
+  "capital": "Moroni",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -12.16666666,
+   44.25
+  ],
+  "geom": "174"
+ },
+ {
+  "code": "cr",
+  "name": "Costa Rica",
+  "official": "Republic of Costa Rica",
+  "capital": "San José",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   10,
+   -84
+  ],
+  "geom": "188"
+ },
+ {
+  "code": "hr",
+  "name": "Croatia",
+  "official": "Republic of Croatia",
+  "capital": "Zagreb",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   45.16666666,
+   15.5
+  ],
+  "geom": "191"
+ },
+ {
+  "code": "cu",
+  "name": "Cuba",
+  "official": "Republic of Cuba",
+  "capital": "Havana",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   21.5,
+   -80
+  ],
+  "geom": "192"
+ },
+ {
+  "code": "cy",
+  "name": "Cyprus",
+  "official": "Republic of Cyprus",
+  "capital": "Nicosia",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   35,
+   33
+  ],
+  "geom": "196"
+ },
+ {
+  "code": "cz",
+  "name": "Czechia",
+  "official": "Czech Republic",
+  "capital": "Prague",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   49.75,
+   15.5
+  ],
+  "geom": "203"
+ },
+ {
+  "code": "dk",
+  "name": "Denmark",
+  "official": "Kingdom of Denmark",
+  "capital": "Copenhagen",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   56,
+   10
+  ],
+  "geom": "208"
+ },
+ {
+  "code": "dj",
+  "name": "Djibouti",
+  "official": "Republic of Djibouti",
+  "capital": "Djibouti",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   11.5,
+   43
+  ],
+  "geom": "262"
+ },
+ {
+  "code": "dm",
+  "name": "Dominica",
+  "official": "Commonwealth of Dominica",
+  "capital": "Roseau",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   15.41666666,
+   -61.33333333
+  ],
+  "geom": "212"
+ },
+ {
+  "code": "do",
+  "name": "Dominican Republic",
+  "official": "Dominican Republic",
+  "capital": "Santo Domingo",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   19,
+   -70.66666666
+  ],
+  "geom": "214"
+ },
+ {
+  "code": "cd",
+  "name": "DR Congo",
+  "official": "Democratic Republic of the Congo",
+  "capital": "Kinshasa",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   0,
+   25
+  ],
+  "geom": "180"
+ },
+ {
+  "code": "ec",
+  "name": "Ecuador",
+  "official": "Republic of Ecuador",
+  "capital": "Quito",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   -2,
+   -77.5
+  ],
+  "geom": "218"
+ },
+ {
+  "code": "eg",
+  "name": "Egypt",
+  "official": "Arab Republic of Egypt",
+  "capital": "Cairo",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   27,
+   30
+  ],
+  "geom": "818"
+ },
+ {
+  "code": "sv",
+  "name": "El Salvador",
+  "official": "Republic of El Salvador",
+  "capital": "San Salvador",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   13.83333333,
+   -88.91666666
+  ],
+  "geom": "222"
+ },
+ {
+  "code": "gq",
+  "name": "Equatorial Guinea",
+  "official": "Republic of Equatorial Guinea",
+  "capital": "Malabo",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   2,
+   10
+  ],
+  "geom": "226"
+ },
+ {
+  "code": "er",
+  "name": "Eritrea",
+  "official": "State of Eritrea",
+  "capital": "Asmara",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   15,
+   39
+  ],
+  "geom": "232"
+ },
+ {
+  "code": "ee",
+  "name": "Estonia",
+  "official": "Republic of Estonia",
+  "capital": "Tallinn",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   59,
+   26
+  ],
+  "geom": "233"
+ },
+ {
+  "code": "sz",
+  "name": "Eswatini",
+  "official": "Kingdom of Eswatini",
+  "capital": "Lobamba",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -26.5,
+   31.5
+  ],
+  "geom": "748"
+ },
+ {
+  "code": "et",
+  "name": "Ethiopia",
+  "official": "Federal Democratic Republic of Ethiopia",
+  "capital": "Addis Ababa",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   8,
+   38
+  ],
+  "geom": "231"
+ },
+ {
+  "code": "fj",
+  "name": "Fiji",
+  "official": "Republic of Fiji",
+  "capital": "Suva",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -18,
+   175
+  ],
+  "geom": "242"
+ },
+ {
+  "code": "fi",
+  "name": "Finland",
+  "official": "Republic of Finland",
+  "capital": "Helsinki",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   64,
+   26
+  ],
+  "geom": "246"
+ },
+ {
+  "code": "fr",
+  "name": "France",
+  "official": "French Republic",
+  "capital": "Paris",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   46,
+   2
+  ],
+  "geom": "250"
+ },
+ {
+  "code": "ga",
+  "name": "Gabon",
+  "official": "Gabonese Republic",
+  "capital": "Libreville",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -1,
+   11.75
+  ],
+  "geom": "266"
+ },
+ {
+  "code": "gm",
+  "name": "Gambia",
+  "official": "Republic of the Gambia",
+  "capital": "Banjul",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   13.46666666,
+   -16.56666666
+  ],
+  "geom": "270"
+ },
+ {
+  "code": "ge",
+  "name": "Georgia",
+  "official": "Georgia",
+  "capital": "Tbilisi",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   42,
+   43.5
+  ],
+  "geom": "268"
+ },
+ {
+  "code": "de",
+  "name": "Germany",
+  "official": "Federal Republic of Germany",
+  "capital": "Berlin",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   51,
+   9
+  ],
+  "geom": "276"
+ },
+ {
+  "code": "gh",
+  "name": "Ghana",
+  "official": "Republic of Ghana",
+  "capital": "Accra",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   8,
+   -2
+  ],
+  "geom": "288"
+ },
+ {
+  "code": "gr",
+  "name": "Greece",
+  "official": "Hellenic Republic",
+  "capital": "Athens",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   39,
+   22
+  ],
+  "geom": "300"
+ },
+ {
+  "code": "gd",
+  "name": "Grenada",
+  "official": "Grenada",
+  "capital": "St. George's",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   12.11666666,
+   -61.66666666
+  ],
+  "geom": "308"
+ },
+ {
+  "code": "gt",
+  "name": "Guatemala",
+  "official": "Republic of Guatemala",
+  "capital": "Guatemala City",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   15.5,
+   -90.25
+  ],
+  "geom": "320"
+ },
+ {
+  "code": "gn",
+  "name": "Guinea",
+  "official": "Republic of Guinea",
+  "capital": "Conakry",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   11,
+   -10
+  ],
+  "geom": "324"
+ },
+ {
+  "code": "gw",
+  "name": "Guinea-Bissau",
+  "official": "Republic of Guinea-Bissau",
+  "capital": "Bissau",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   12,
+   -15
+  ],
+  "geom": "624"
+ },
+ {
+  "code": "gy",
+  "name": "Guyana",
+  "official": "Co-operative Republic of Guyana",
+  "capital": "Georgetown",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   5,
+   -59
+  ],
+  "geom": "328"
+ },
+ {
+  "code": "ht",
+  "name": "Haiti",
+  "official": "Republic of Haiti",
+  "capital": "Port-au-Prince",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   19,
+   -72.41666666
+  ],
+  "geom": "332"
+ },
+ {
+  "code": "hn",
+  "name": "Honduras",
+  "official": "Republic of Honduras",
+  "capital": "Tegucigalpa",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   15,
+   -86.5
+  ],
+  "geom": "340"
+ },
+ {
+  "code": "hu",
+  "name": "Hungary",
+  "official": "Hungary",
+  "capital": "Budapest",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   47,
+   20
+  ],
+  "geom": "348"
+ },
+ {
+  "code": "is",
+  "name": "Iceland",
+  "official": "Iceland",
+  "capital": "Reykjavik",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   65,
+   -18
+  ],
+  "geom": "352"
+ },
+ {
+  "code": "in",
+  "name": "India",
+  "official": "Republic of India",
+  "capital": "New Delhi",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   20,
+   77
+  ],
+  "geom": "356"
+ },
+ {
+  "code": "id",
+  "name": "Indonesia",
+  "official": "Republic of Indonesia",
+  "capital": "Jakarta",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   -5,
+   120
+  ],
+  "geom": "360"
+ },
+ {
+  "code": "ir",
+  "name": "Iran",
+  "official": "Islamic Republic of Iran",
+  "capital": "Tehran",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   32,
+   53
+  ],
+  "geom": "364"
+ },
+ {
+  "code": "iq",
+  "name": "Iraq",
+  "official": "Republic of Iraq",
+  "capital": "Baghdad",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   33,
+   44
+  ],
+  "geom": "368"
+ },
+ {
+  "code": "ie",
+  "name": "Ireland",
+  "official": "Republic of Ireland",
+  "capital": "Dublin",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   53,
+   -8
+  ],
+  "geom": "372"
+ },
+ {
+  "code": "il",
+  "name": "Israel",
+  "official": "State of Israel",
+  "capital": "Jerusalem",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   31.47,
+   35.13
+  ],
+  "geom": "376"
+ },
+ {
+  "code": "it",
+  "name": "Italy",
+  "official": "Italian Republic",
+  "capital": "Rome",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   42.83333333,
+   12.83333333
+  ],
+  "geom": "380"
+ },
+ {
+  "code": "ci",
+  "name": "Ivory Coast",
+  "official": "Republic of Côte d'Ivoire",
+  "capital": "Yamoussoukro",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   8,
+   -5
+  ],
+  "geom": "384"
+ },
+ {
+  "code": "jm",
+  "name": "Jamaica",
+  "official": "Jamaica",
+  "capital": "Kingston",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   18.25,
+   -77.5
+  ],
+  "geom": "388"
+ },
+ {
+  "code": "jp",
+  "name": "Japan",
+  "official": "Japan",
+  "capital": "Tokyo",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   36,
+   138
+  ],
+  "geom": "392"
+ },
+ {
+  "code": "jo",
+  "name": "Jordan",
+  "official": "Hashemite Kingdom of Jordan",
+  "capital": "Amman",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   31,
+   36
+  ],
+  "geom": "400"
+ },
+ {
+  "code": "kz",
+  "name": "Kazakhstan",
+  "official": "Republic of Kazakhstan",
+  "capital": "Astana",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   48,
+   68
+  ],
+  "geom": "398"
+ },
+ {
+  "code": "ke",
+  "name": "Kenya",
+  "official": "Republic of Kenya",
+  "capital": "Nairobi",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   1,
+   38
+  ],
+  "geom": "404"
+ },
+ {
+  "code": "ki",
+  "name": "Kiribati",
+  "official": "Independent and Sovereign Republic of Kiribati",
+  "capital": "South Tarawa",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   1.41666666,
+   173
+  ],
+  "geom": "296"
+ },
+ {
+  "code": "xk",
+  "name": "Kosovo",
+  "official": "Republic of Kosovo",
+  "capital": "Pristina",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   42.666667,
+   21.166667
+  ],
+  "geom": "n:Kosovo"
+ },
+ {
+  "code": "kw",
+  "name": "Kuwait",
+  "official": "State of Kuwait",
+  "capital": "Kuwait City",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   29.5,
+   45.75
+  ],
+  "geom": "414"
+ },
+ {
+  "code": "kg",
+  "name": "Kyrgyzstan",
+  "official": "Kyrgyz Republic",
+  "capital": "Bishkek",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   41,
+   75
+  ],
+  "geom": "417"
+ },
+ {
+  "code": "la",
+  "name": "Laos",
+  "official": "Lao People's Democratic Republic",
+  "capital": "Vientiane",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   18,
+   105
+  ],
+  "geom": "418"
+ },
+ {
+  "code": "lv",
+  "name": "Latvia",
+  "official": "Republic of Latvia",
+  "capital": "Riga",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   57,
+   25
+  ],
+  "geom": "428"
+ },
+ {
+  "code": "lb",
+  "name": "Lebanon",
+  "official": "Lebanese Republic",
+  "capital": "Beirut",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   33.83333333,
+   35.83333333
+  ],
+  "geom": "422"
+ },
+ {
+  "code": "ls",
+  "name": "Lesotho",
+  "official": "Kingdom of Lesotho",
+  "capital": "Maseru",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -29.5,
+   28.5
+  ],
+  "geom": "426"
+ },
+ {
+  "code": "lr",
+  "name": "Liberia",
+  "official": "Republic of Liberia",
+  "capital": "Monrovia",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   6.5,
+   -9.5
+  ],
+  "geom": "430"
+ },
+ {
+  "code": "ly",
+  "name": "Libya",
+  "official": "State of Libya",
+  "capital": "Tripoli",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   25,
+   17
+  ],
+  "geom": "434"
+ },
+ {
+  "code": "li",
+  "name": "Liechtenstein",
+  "official": "Principality of Liechtenstein",
+  "capital": "Vaduz",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   47.26666666,
+   9.53333333
+  ],
+  "geom": "438"
+ },
+ {
+  "code": "lt",
+  "name": "Lithuania",
+  "official": "Republic of Lithuania",
+  "capital": "Vilnius",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   56,
+   24
+  ],
+  "geom": "440"
+ },
+ {
+  "code": "lu",
+  "name": "Luxembourg",
+  "official": "Grand Duchy of Luxembourg",
+  "capital": "Luxembourg",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   49.75,
+   6.16666666
+  ],
+  "geom": "442"
+ },
+ {
+  "code": "mg",
+  "name": "Madagascar",
+  "official": "Republic of Madagascar",
+  "capital": "Antananarivo",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -20,
+   47
+  ],
+  "geom": "450"
+ },
+ {
+  "code": "mw",
+  "name": "Malawi",
+  "official": "Republic of Malawi",
+  "capital": "Lilongwe",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -13.5,
+   34
+  ],
+  "geom": "454"
+ },
+ {
+  "code": "my",
+  "name": "Malaysia",
+  "official": "Malaysia",
+  "capital": "Kuala Lumpur",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   2.5,
+   112.5
+  ],
+  "geom": "458"
+ },
+ {
+  "code": "mv",
+  "name": "Maldives",
+  "official": "Republic of the Maldives",
+  "capital": "Malé",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   3.25,
+   73
+  ],
+  "geom": "462"
+ },
+ {
+  "code": "ml",
+  "name": "Mali",
+  "official": "Republic of Mali",
+  "capital": "Bamako",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   17,
+   -4
+  ],
+  "geom": "466"
+ },
+ {
+  "code": "mt",
+  "name": "Malta",
+  "official": "Republic of Malta",
+  "capital": "Valletta",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   35.83333333,
+   14.58333333
+  ],
+  "geom": "470"
+ },
+ {
+  "code": "mh",
+  "name": "Marshall Islands",
+  "official": "Republic of the Marshall Islands",
+  "capital": "Majuro",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   9,
+   168
+  ],
+  "geom": "584"
+ },
+ {
+  "code": "mr",
+  "name": "Mauritania",
+  "official": "Islamic Republic of Mauritania",
+  "capital": "Nouakchott",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   20,
+   -12
+  ],
+  "geom": "478"
+ },
+ {
+  "code": "mu",
+  "name": "Mauritius",
+  "official": "Republic of Mauritius",
+  "capital": "Port Louis",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -20.28333333,
+   57.55
+  ],
+  "geom": "480"
+ },
+ {
+  "code": "mx",
+  "name": "Mexico",
+  "official": "United Mexican States",
+  "capital": "Mexico City",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   23,
+   -102
+  ],
+  "geom": "484"
+ },
+ {
+  "code": "fm",
+  "name": "Micronesia",
+  "official": "Federated States of Micronesia",
+  "capital": "Palikir",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   6.91666666,
+   158.25
+  ],
+  "geom": "583"
+ },
+ {
+  "code": "md",
+  "name": "Moldova",
+  "official": "Republic of Moldova",
+  "capital": "Chișinău",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   47,
+   29
+  ],
+  "geom": "498"
+ },
+ {
+  "code": "mc",
+  "name": "Monaco",
+  "official": "Principality of Monaco",
+  "capital": "Monaco",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   43.73333333,
+   7.4
+  ],
+  "geom": "492"
+ },
+ {
+  "code": "mn",
+  "name": "Mongolia",
+  "official": "Mongolia",
+  "capital": "Ulan Bator",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   46,
+   105
+  ],
+  "geom": "496"
+ },
+ {
+  "code": "me",
+  "name": "Montenegro",
+  "official": "Montenegro",
+  "capital": "Podgorica",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   42.5,
+   19.3
+  ],
+  "geom": "499"
+ },
+ {
+  "code": "ma",
+  "name": "Morocco",
+  "official": "Kingdom of Morocco",
+  "capital": "Rabat",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   32,
+   -5
+  ],
+  "geom": "504"
+ },
+ {
+  "code": "mz",
+  "name": "Mozambique",
+  "official": "Republic of Mozambique",
+  "capital": "Maputo",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -18.25,
+   35
+  ],
+  "geom": "508"
+ },
+ {
+  "code": "mm",
+  "name": "Myanmar",
+  "official": "Republic of the Union of Myanmar",
+  "capital": "Naypyidaw",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   22,
+   98
+  ],
+  "geom": "104"
+ },
+ {
+  "code": "na",
+  "name": "Namibia",
+  "official": "Republic of Namibia",
+  "capital": "Windhoek",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -22,
+   17
+  ],
+  "geom": "516"
+ },
+ {
+  "code": "nr",
+  "name": "Nauru",
+  "official": "Republic of Nauru",
+  "capital": "Yaren",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -0.53333333,
+   166.91666666
+  ],
+  "geom": "520"
+ },
+ {
+  "code": "np",
+  "name": "Nepal",
+  "official": "Federal Democratic Republic of Nepal",
+  "capital": "Kathmandu",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   28,
+   84
+  ],
+  "geom": "524"
+ },
+ {
+  "code": "nl",
+  "name": "Netherlands",
+  "official": "Kingdom of the Netherlands",
+  "capital": "Amsterdam",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   52.5,
+   5.75
+  ],
+  "geom": "528"
+ },
+ {
+  "code": "nz",
+  "name": "New Zealand",
+  "official": "New Zealand",
+  "capital": "Wellington",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -41,
+   174
+  ],
+  "geom": "554"
+ },
+ {
+  "code": "ni",
+  "name": "Nicaragua",
+  "official": "Republic of Nicaragua",
+  "capital": "Managua",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   13,
+   -85
+  ],
+  "geom": "558"
+ },
+ {
+  "code": "ne",
+  "name": "Niger",
+  "official": "Republic of Niger",
+  "capital": "Niamey",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   16,
+   8
+  ],
+  "geom": "562"
+ },
+ {
+  "code": "ng",
+  "name": "Nigeria",
+  "official": "Federal Republic of Nigeria",
+  "capital": "Abuja",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   10,
+   8
+  ],
+  "geom": "566"
+ },
+ {
+  "code": "kp",
+  "name": "North Korea",
+  "official": "Democratic People's Republic of Korea",
+  "capital": "Pyongyang",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   40,
+   127
+  ],
+  "geom": "408"
+ },
+ {
+  "code": "mk",
+  "name": "North Macedonia",
+  "official": "Republic of North Macedonia",
+  "capital": "Skopje",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   41.83333333,
+   22
+  ],
+  "geom": "807"
+ },
+ {
+  "code": "no",
+  "name": "Norway",
+  "official": "Kingdom of Norway",
+  "capital": "Oslo",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   62,
+   10
+  ],
+  "geom": "578"
+ },
+ {
+  "code": "om",
+  "name": "Oman",
+  "official": "Sultanate of Oman",
+  "capital": "Muscat",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   21,
+   57
+  ],
+  "geom": "512"
+ },
+ {
+  "code": "pk",
+  "name": "Pakistan",
+  "official": "Islamic Republic of Pakistan",
+  "capital": "Islamabad",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   30,
+   70
+  ],
+  "geom": "586"
+ },
+ {
+  "code": "pw",
+  "name": "Palau",
+  "official": "Republic of Palau",
+  "capital": "Ngerulmud",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   7.5,
+   134.5
+  ],
+  "geom": "585"
+ },
+ {
+  "code": "ps",
+  "name": "Palestine",
+  "official": "State of Palestine",
+  "capital": "Ramallah",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   31.9,
+   35.2
+  ],
+  "geom": "275"
+ },
+ {
+  "code": "pa",
+  "name": "Panama",
+  "official": "Republic of Panama",
+  "capital": "Panama City",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   9,
+   -80
+  ],
+  "geom": "591"
+ },
+ {
+  "code": "pg",
+  "name": "Papua New Guinea",
+  "official": "Independent State of Papua New Guinea",
+  "capital": "Port Moresby",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -6,
+   147
+  ],
+  "geom": "598"
+ },
+ {
+  "code": "py",
+  "name": "Paraguay",
+  "official": "Republic of Paraguay",
+  "capital": "Asunción",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   -23,
+   -58
+  ],
+  "geom": "600"
+ },
+ {
+  "code": "pe",
+  "name": "Peru",
+  "official": "Republic of Peru",
+  "capital": "Lima",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   -10,
+   -76
+  ],
+  "geom": "604"
+ },
+ {
+  "code": "ph",
+  "name": "Philippines",
+  "official": "Republic of the Philippines",
+  "capital": "Manila",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   13,
+   122
+  ],
+  "geom": "608"
+ },
+ {
+  "code": "pl",
+  "name": "Poland",
+  "official": "Republic of Poland",
+  "capital": "Warsaw",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   52,
+   20
+  ],
+  "geom": "616"
+ },
+ {
+  "code": "pt",
+  "name": "Portugal",
+  "official": "Portuguese Republic",
+  "capital": "Lisbon",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   39.5,
+   -8
+  ],
+  "geom": "620"
+ },
+ {
+  "code": "qa",
+  "name": "Qatar",
+  "official": "State of Qatar",
+  "capital": "Doha",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   25.5,
+   51.25
+  ],
+  "geom": "634"
+ },
+ {
+  "code": "cg",
+  "name": "Republic of the Congo",
+  "official": "Republic of the Congo",
+  "capital": "Brazzaville",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -1,
+   15
+  ],
+  "geom": "178"
+ },
+ {
+  "code": "ro",
+  "name": "Romania",
+  "official": "Romania",
+  "capital": "Bucharest",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   46,
+   25
+  ],
+  "geom": "642"
+ },
+ {
+  "code": "ru",
+  "name": "Russia",
+  "official": "Russian Federation",
+  "capital": "Moscow",
+  "regions": [
+   "europe",
+   "asia"
+  ],
+  "latlng": [
+   60,
+   100
+  ],
+  "geom": "643"
+ },
+ {
+  "code": "rw",
+  "name": "Rwanda",
+  "official": "Republic of Rwanda",
+  "capital": "Kigali",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -2,
+   30
+  ],
+  "geom": "646"
+ },
+ {
+  "code": "kn",
+  "name": "Saint Kitts and Nevis",
+  "official": "Federation of Saint Christopher and Nevis",
+  "capital": "Basseterre",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   17.33333333,
+   -62.75
+  ],
+  "geom": "659"
+ },
+ {
+  "code": "lc",
+  "name": "Saint Lucia",
+  "official": "Saint Lucia",
+  "capital": "Castries",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   13.88333333,
+   -60.96666666
+  ],
+  "geom": "662"
+ },
+ {
+  "code": "vc",
+  "name": "Saint Vincent and the Grenadines",
+  "official": "Saint Vincent and the Grenadines",
+  "capital": "Kingstown",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   13.25,
+   -61.2
+  ],
+  "geom": "670"
+ },
+ {
+  "code": "ws",
+  "name": "Samoa",
+  "official": "Independent State of Samoa",
+  "capital": "Apia",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -13.58333333,
+   -172.33333333
+  ],
+  "geom": "882"
+ },
+ {
+  "code": "sm",
+  "name": "San Marino",
+  "official": "Most Serene Republic of San Marino",
+  "capital": "City of San Marino",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   43.76666666,
+   12.41666666
+  ],
+  "geom": "674"
+ },
+ {
+  "code": "st",
+  "name": "São Tomé and Príncipe",
+  "official": "Democratic Republic of São Tomé and Príncipe",
+  "capital": "São Tomé",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   1,
+   7
+  ],
+  "geom": "678"
+ },
+ {
+  "code": "sa",
+  "name": "Saudi Arabia",
+  "official": "Kingdom of Saudi Arabia",
+  "capital": "Riyadh",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   25,
+   45
+  ],
+  "geom": "682"
+ },
+ {
+  "code": "sn",
+  "name": "Senegal",
+  "official": "Republic of Senegal",
+  "capital": "Dakar",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   14,
+   -14
+  ],
+  "geom": "686"
+ },
+ {
+  "code": "rs",
+  "name": "Serbia",
+  "official": "Republic of Serbia",
+  "capital": "Belgrade",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   44,
+   21
+  ],
+  "geom": "688"
+ },
+ {
+  "code": "sc",
+  "name": "Seychelles",
+  "official": "Republic of Seychelles",
+  "capital": "Victoria",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -4.58333333,
+   55.66666666
+  ],
+  "geom": "690"
+ },
+ {
+  "code": "sl",
+  "name": "Sierra Leone",
+  "official": "Republic of Sierra Leone",
+  "capital": "Freetown",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   8.5,
+   -11.5
+  ],
+  "geom": "694"
+ },
+ {
+  "code": "sg",
+  "name": "Singapore",
+  "official": "Republic of Singapore",
+  "capital": "Singapore",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   1.36666666,
+   103.8
+  ],
+  "geom": "702"
+ },
+ {
+  "code": "sk",
+  "name": "Slovakia",
+  "official": "Slovak Republic",
+  "capital": "Bratislava",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   48.66666666,
+   19.5
+  ],
+  "geom": "703"
+ },
+ {
+  "code": "si",
+  "name": "Slovenia",
+  "official": "Republic of Slovenia",
+  "capital": "Ljubljana",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   46.11666666,
+   14.81666666
+  ],
+  "geom": "705"
+ },
+ {
+  "code": "sb",
+  "name": "Solomon Islands",
+  "official": "Solomon Islands",
+  "capital": "Honiara",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -8,
+   159
+  ],
+  "geom": "090"
+ },
+ {
+  "code": "so",
+  "name": "Somalia",
+  "official": "Federal Republic of Somalia",
+  "capital": "Mogadishu",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   10,
+   49
+  ],
+  "geom": "706"
+ },
+ {
+  "code": "za",
+  "name": "South Africa",
+  "official": "Republic of South Africa",
+  "capital": "Pretoria",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -29,
+   24
+  ],
+  "geom": "710"
+ },
+ {
+  "code": "kr",
+  "name": "South Korea",
+  "official": "Republic of Korea",
+  "capital": "Seoul",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   37,
+   127.5
+  ],
+  "geom": "410"
+ },
+ {
+  "code": "ss",
+  "name": "South Sudan",
+  "official": "Republic of South Sudan",
+  "capital": "Juba",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   7,
+   30
+  ],
+  "geom": "728"
+ },
+ {
+  "code": "es",
+  "name": "Spain",
+  "official": "Kingdom of Spain",
+  "capital": "Madrid",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   40,
+   -4
+  ],
+  "geom": "724"
+ },
+ {
+  "code": "lk",
+  "name": "Sri Lanka",
+  "official": "Democratic Socialist Republic of Sri Lanka",
+  "capital": "Colombo",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   7,
+   81
+  ],
+  "geom": "144"
+ },
+ {
+  "code": "sd",
+  "name": "Sudan",
+  "official": "Republic of the Sudan",
+  "capital": "Khartoum",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   15,
+   30
+  ],
+  "geom": "729"
+ },
+ {
+  "code": "sr",
+  "name": "Suriname",
+  "official": "Republic of Suriname",
+  "capital": "Paramaribo",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   4,
+   -56
+  ],
+  "geom": "740"
+ },
+ {
+  "code": "se",
+  "name": "Sweden",
+  "official": "Kingdom of Sweden",
+  "capital": "Stockholm",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   62,
+   15
+  ],
+  "geom": "752"
+ },
+ {
+  "code": "ch",
+  "name": "Switzerland",
+  "official": "Swiss Confederation",
+  "capital": "Bern",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   47,
+   8
+  ],
+  "geom": "756"
+ },
+ {
+  "code": "sy",
+  "name": "Syria",
+  "official": "Syrian Arab Republic",
+  "capital": "Damascus",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   35,
+   38
+  ],
+  "geom": "760"
+ },
+ {
+  "code": "tw",
+  "name": "Taiwan",
+  "official": "Republic of China (Taiwan)",
+  "capital": "Taipei",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   23.5,
+   121
+  ],
+  "geom": "158"
+ },
+ {
+  "code": "tj",
+  "name": "Tajikistan",
+  "official": "Republic of Tajikistan",
+  "capital": "Dushanbe",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   39,
+   71
+  ],
+  "geom": "762"
+ },
+ {
+  "code": "tz",
+  "name": "Tanzania",
+  "official": "United Republic of Tanzania",
+  "capital": "Dodoma",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -6,
+   35
+  ],
+  "geom": "834"
+ },
+ {
+  "code": "th",
+  "name": "Thailand",
+  "official": "Kingdom of Thailand",
+  "capital": "Bangkok",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   15,
+   100
+  ],
+  "geom": "764"
+ },
+ {
+  "code": "tl",
+  "name": "Timor-Leste",
+  "official": "Democratic Republic of Timor-Leste",
+  "capital": "Dili",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   -8.83333333,
+   125.91666666
+  ],
+  "geom": "626"
+ },
+ {
+  "code": "tg",
+  "name": "Togo",
+  "official": "Togolese Republic",
+  "capital": "Lomé",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   8,
+   1.16666666
+  ],
+  "geom": "768"
+ },
+ {
+  "code": "to",
+  "name": "Tonga",
+  "official": "Kingdom of Tonga",
+  "capital": "Nuku'alofa",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -20,
+   -175
+  ],
+  "geom": "776"
+ },
+ {
+  "code": "tt",
+  "name": "Trinidad and Tobago",
+  "official": "Republic of Trinidad and Tobago",
+  "capital": "Port of Spain",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   11,
+   -61
+  ],
+  "geom": "780"
+ },
+ {
+  "code": "tn",
+  "name": "Tunisia",
+  "official": "Tunisian Republic",
+  "capital": "Tunis",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   34,
+   9
+  ],
+  "geom": "788"
+ },
+ {
+  "code": "tr",
+  "name": "Türkiye",
+  "official": "Republic of Türkiye",
+  "capital": "Ankara",
+  "regions": [
+   "asia",
+   "europe"
+  ],
+  "latlng": [
+   39,
+   35
+  ],
+  "geom": "792"
+ },
+ {
+  "code": "tm",
+  "name": "Turkmenistan",
+  "official": "Turkmenistan",
+  "capital": "Ashgabat",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   40,
+   60
+  ],
+  "geom": "795"
+ },
+ {
+  "code": "tv",
+  "name": "Tuvalu",
+  "official": "Tuvalu",
+  "capital": "Funafuti",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -8,
+   178
+  ],
+  "geom": null
+ },
+ {
+  "code": "ug",
+  "name": "Uganda",
+  "official": "Republic of Uganda",
+  "capital": "Kampala",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   1,
+   32
+  ],
+  "geom": "800"
+ },
+ {
+  "code": "ua",
+  "name": "Ukraine",
+  "official": "Ukraine",
+  "capital": "Kyiv",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   49,
+   32
+  ],
+  "geom": "804"
+ },
+ {
+  "code": "ae",
+  "name": "United Arab Emirates",
+  "official": "United Arab Emirates",
+  "capital": "Abu Dhabi",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   24,
+   54
+  ],
+  "geom": "784"
+ },
+ {
+  "code": "gb",
+  "name": "United Kingdom",
+  "official": "United Kingdom of Great Britain and Northern Ireland",
+  "capital": "London",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   54,
+   -2
+  ],
+  "geom": "826"
+ },
+ {
+  "code": "us",
+  "name": "United States",
+  "official": "United States of America",
+  "capital": "Washington D.C.",
+  "regions": [
+   "north-america"
+  ],
+  "latlng": [
+   38,
+   -97
+  ],
+  "geom": "840"
+ },
+ {
+  "code": "uy",
+  "name": "Uruguay",
+  "official": "Oriental Republic of Uruguay",
+  "capital": "Montevideo",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   -33,
+   -56
+  ],
+  "geom": "858"
+ },
+ {
+  "code": "uz",
+  "name": "Uzbekistan",
+  "official": "Republic of Uzbekistan",
+  "capital": "Tashkent",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   41,
+   64
+  ],
+  "geom": "860"
+ },
+ {
+  "code": "vu",
+  "name": "Vanuatu",
+  "official": "Republic of Vanuatu",
+  "capital": "Port Vila",
+  "regions": [
+   "oceania"
+  ],
+  "latlng": [
+   -16,
+   167
+  ],
+  "geom": "548"
+ },
+ {
+  "code": "va",
+  "name": "Vatican City",
+  "official": "Vatican City State",
+  "capital": "Vatican City",
+  "regions": [
+   "europe"
+  ],
+  "latlng": [
+   41.9,
+   12.45
+  ],
+  "geom": "336"
+ },
+ {
+  "code": "ve",
+  "name": "Venezuela",
+  "official": "Bolivarian Republic of Venezuela",
+  "capital": "Caracas",
+  "regions": [
+   "south-america"
+  ],
+  "latlng": [
+   8,
+   -66
+  ],
+  "geom": "862"
+ },
+ {
+  "code": "vn",
+  "name": "Vietnam",
+  "official": "Socialist Republic of Vietnam",
+  "capital": "Hanoi",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   16.16666666,
+   107.83333333
+  ],
+  "geom": "704"
+ },
+ {
+  "code": "ye",
+  "name": "Yemen",
+  "official": "Republic of Yemen",
+  "capital": "Sana'a",
+  "regions": [
+   "asia"
+  ],
+  "latlng": [
+   15,
+   48
+  ],
+  "geom": "887"
+ },
+ {
+  "code": "zm",
+  "name": "Zambia",
+  "official": "Republic of Zambia",
+  "capital": "Lusaka",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -15,
+   30
+  ],
+  "geom": "894"
+ },
+ {
+  "code": "zw",
+  "name": "Zimbabwe",
+  "official": "Republic of Zimbabwe",
+  "capital": "Harare",
+  "regions": [
+   "africa"
+  ],
+  "latlng": [
+   -20,
+   30
+  ],
+  "geom": "716"
+ }
+]
