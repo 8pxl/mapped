@@ -3,7 +3,7 @@ import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/700.css';
 import './style.css';
 import { isMuted, setMuted, sfx } from './audio';
-import { countriesIn, type Country, type Shape } from './data';
+import { COLOUR_OF, countriesIn, type Country, type Shape } from './data';
 import { Game, MAX_ATTEMPTS, formatTime, loadBest, saveBest, type Mode, type Outcome } from './game';
 import { MapView, thumbnail, type ClientPoint, type Paint, type PickEvent } from './map';
 import { REGIONS, regionById, type RegionDef, type RegionId } from './regions';
@@ -326,35 +326,44 @@ function showResults(g: Game, record: boolean) {
   const rank = RANKS.find(([min]) => score >= min)![1];
   const firstTry = [...g.results.values()].filter((o) => o === 1).length;
   const slips = g.missed;
+  const region = regionById(g.region);
+  const swatch = (c: Country, o: Outcome) =>
+    o === 0 ? '<i class="swatch missed"></i>' : `<i class="swatch${o > 1 ? ' retry' : ''}" style="--k: ${COLOUR_OF.get(c.code)}"></i>`;
   $('#results-body').innerHTML = `
-    <div class="res-head">
-      <div class="res-kicker">${badge(regionById(g.region))}${regionById(g.region).name} · ${g.mode === 'name' ? 'Name + Flag' : 'Flag only'}</div>
-      <div class="res-score">${Math.round(score * 100)}<span>%</span></div>
-      <div class="rank-stamp">${rank}</div>
-      ${record ? '<div class="record">New personal best</div>' : ''}
+    <div class="res-main" tabindex="-1" autofocus>
+      <header class="res-top">
+        <span class="res-kicker">${badge(region)}<span>${region.name}</span><span class="sep">/</span><span>${g.mode === 'name' ? 'Name + Flag' : 'Flag only'}</span></span>
+        ${record ? '<span class="record">New best</span>' : ''}
+      </header>
+      <div class="res-hero">
+        <div class="res-score">${Math.round(score * 100)}<span>%</span></div>
+        <div class="rank-stamp">${rank}</div>
+      </div>
+      <dl class="res-stats">
+        <div><dt>Time</dt><dd>${formatTime(g.elapsed)}</dd></div>
+        <div><dt>First try</dt><dd>${firstTry}<small>/${g.pool.length}</small></dd></div>
+        <div><dt>Best streak</dt><dd>${g.bestStreak}</dd></div>
+      </dl>
+      ${
+        slips.length
+          ? `<section class="res-review">
+        <h3 class="res-sub">To review <span>${slips.length}</span></h3>
+        <ul class="slips">${slips
+          .map((c) => {
+            const o = g.results.get(c.code)!;
+            return `<li>${swatch(c, o)}<img src="${c.flag}" alt=""><span>${c.name}</span><em>${o ? `${o} tries` : 'Missed'}</em></li>`;
+          })
+          .join('')}</ul>
+      </section>`
+          : '<p class="flawless">Flawless. Every country on the first try.</p>'
+      }
     </div>
-    <dl class="res-stats">
-      <div><dt>Time</dt><dd>${formatTime(g.elapsed)}</dd></div>
-      <div><dt>First try</dt><dd>${firstTry}/${g.pool.length}</dd></div>
-      <div><dt>Best streak</dt><dd>${g.bestStreak}</dd></div>
-    </dl>
-    ${
-      slips.length
-        ? `<h3 class="res-sub">To review <span>${slips.length}</span></h3>
-      <ul class="slips">${slips
-        .map((c) => {
-          const o = g.results.get(c.code)!;
-          return `<li class="p-${PAINT_FOR[o]}"><i class="dot"></i><img src="${c.flag}" alt=""><span>${c.name}</span><em>${o ? `${o} tries` : 'missed'}</em></li>`;
-        })
-        .join('')}</ul>`
-        : '<p class="flawless">Flawless. Every country on the first try.</p>'
-    }
-    <div class="res-actions">
-      ${slips.length ? `<button class="btn" data-act="retry">Retry the ${slips.length} to review</button>` : ''}
+    <footer class="res-actions${slips.length ? '' : ' no-retry'}">
+      ${slips.length ? `<button class="btn res-primary" data-act="retry">Retry ${slips.length} to review</button>` : ''}
       <button class="btn ${slips.length ? 'alt' : ''}" data-act="again">Play again</button>
-      <button class="btn-ghost" data-act="map">View map</button>
-      <button class="btn-ghost" data-act="menu">Menu</button>
-    </div>`;
+      <button class="btn alt" data-act="map">View map</button>
+      <button class="btn alt" data-act="menu">Menu</button>
+    </footer>`;
   results.showModal();
 }
 
