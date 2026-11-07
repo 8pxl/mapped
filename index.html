@@ -10,30 +10,34 @@
   <body>
     <main id="menu" class="screen">
       <div class="menu-wrap">
-        <header class="masthead">
-          <div class="masthead-line" aria-hidden="true">
-            <i style="--c: #2f6fe8"></i><i style="--c: #ee352e"></i><i style="--c: #ff6319"></i><i style="--c: #7b4fe0"></i><i style="--c: #8cc63f"></i><i style="--c: #b933ad"></i>
-          </div>
-          <h1 class="wordmark">mapped!</h1>
-          <p class="subtitle">Flags &amp; countries <span>Map quiz</span></p>
+        <header class="topbar">
+          <a class="brand" href="/" aria-label="mapped! home">
+            <span class="brand-lines" aria-hidden="true"><i style="--c: #2f6fe8"></i><i style="--c: #ee352e"></i><i style="--c: #ff6319"></i><i style="--c: #8cc63f"></i></span>
+            mapped!
+          </a>
+          <button id="open-settings" class="icon-btn" aria-label="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" /><circle cx="16" cy="7" r="2" /><circle cx="8" cy="17" r="2" /></svg>
+          </button>
         </header>
 
-        <section class="menu-step">
-          <h2 class="step"><span class="step-num">1</span> Mode</h2>
-          <div id="modes" class="modes"></div>
-        </section>
-
-        <section class="menu-step">
-          <h2 class="step"><span class="step-num">2</span> Region</h2>
-          <div id="regions" class="regions"></div>
-        </section>
-
-        <footer class="options">
-          <label class="check pointer-only"><input type="checkbox" id="opt-hints" /> <span>Show names on hover <small>practice · unranked</small></span></label>
-          <label class="check"><input type="checkbox" id="opt-sound" /> <span>Sound</span></label>
-          <p class="tips pointer-only"><kbd>Space</kbd> clicks under the cursor <kbd>S</kbd> skips <kbd>Pinch</kbd> or <kbd>⌘ scroll</kbd> zooms</p>
-        </footer>
+        <div class="menu-grid">
+          <div class="picker">
+            <section class="pick-section" aria-labelledby="game-label">
+              <h2 class="eyebrow" id="game-label">Game</h2>
+              <div id="modes" class="mode-tabs" role="radiogroup" aria-labelledby="game-label"></div>
+              <p id="mode-desc" class="mode-desc"></p>
+            </section>
+            <section class="pick-section" aria-labelledby="region-label">
+              <div class="region-cols">
+                <h2 class="eyebrow" id="region-label">Region</h2><span aria-hidden="true">Countries</span><span aria-hidden="true">Best</span>
+              </div>
+              <div id="regions" class="region-list"></div>
+            </section>
+          </div>
+          <aside id="preview" class="preview" aria-live="polite"></aside>
+        </div>
       </div>
+      <div id="start-bar" class="start-bar"></div>
     </main>
 
     <main id="play" class="screen" hidden>
@@ -84,6 +88,26 @@
         </aside>
       </div>
     </main>
+
+    <dialog id="settings" class="settings">
+      <header class="settings-head">
+        <h2>Settings</h2>
+        <button class="icon-btn" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </header>
+      <label class="setting"><span><b>Sound</b><small>Clicks, stamps and chimes</small></span><input type="checkbox" id="opt-sound" class="toggle" /></label>
+      <label class="setting pointer-only"><span><b>Show names on hover</b><small>Practice mode. Runs aren't ranked.</small></span><input type="checkbox" id="opt-hints" class="toggle" /></label>
+      <div class="setting-keys pointer-only">
+        <b>Keyboard</b>
+        <dl>
+          <div><dt><kbd>Space</kbd></dt><dd>Click whatever is under the cursor</dd></div>
+          <div><dt><kbd>S</kbd></dt><dd>Skip the current country</dd></div>
+          <div><dt><kbd>Pinch</kbd> <kbd>⌘ scroll</kbd></dt><dd>Zoom</dd></div>
+          <div><dt><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd></dt><dd>Pick a region and start, on the menu</dd></div>
+        </dl>
+      </div>
+    </dialog>
 
     <dialog id="results" class="results">
       <div id="results-body"></div>

@@ -10,6 +10,7 @@ const $ = <T extends HTMLElement>(sel: string, root: ParentNode = document) => r
 const prefs = {
   mode: (readPref('mode') as Mode) || 'name',
   hints: readPref('hints') === '1',
+  region: (REGIONS.some((r) => r.id === readPref('region')) ? readPref('region') : 'world') as RegionId,
 };
 
 
@@ -29,10 +30,12 @@ function writePref(key: string, value: string) {
   }
 }
 
+/** Game types on the menu. Adding a game is one entry here plus its rules in game.ts. */
 const MODES: { id: Mode; code: string; title: string; blurb: string }[] = [
-  { id: 'name', code: 'N+F', title: 'Name + Flag', blurb: 'Given the name and its flag, find the country on the map.' },
-  { id: 'flag', code: 'F', title: 'Flag only', blurb: 'Given only the flag. Identify it, then find it.' },
+  { id: 'name', code: 'N+F', title: 'Name + Flag', blurb: 'See the name and flag. Find the country on the map.' },
+  { id: 'flag', code: 'F', title: 'Flag only', blurb: 'See only the flag. Work out the country, then find it.' },
 ];
+const modeTitle = (m: Mode) => MODES.find((x) => x.id === m)!.title;
 
 const badgeText = (r: RegionDef) => (r.line ? String(r.line) : 'W');
 const badge = (r: RegionDef) => `<span class="badge${r.line ? '' : ' light'}" style="--line: ${r.color}">${badgeText(r)}</span>`;
@@ -52,56 +55,102 @@ const RANKS: [number, string][] = [
 const menu = $('#menu');
 const play = $('#play');
 
+const thumbs = new Map<RegionId, string>();
+const thumbFor = (r: RegionDef) => {
+  if (!thumbs.has(r.id)) thumbs.set(r.id, thumbnail(r, new Set(countriesIn(r.id).map((c) => c.code)), 560, 320));
+  return thumbs.get(r.id)!;
+};
+
 function renderMenu() {
   $('#modes', menu).innerHTML = MODES.map(
     (m) => `
-    <button class="mode${m.id === prefs.mode ? ' on' : ''}" data-mode="${m.id}" aria-pressed="${m.id === prefs.mode}">
-      <span class="route route-${m.id}">${m.code}</span>
-      <span class="mode-text">
-        <span class="mode-title">${m.title}</span>
-        <span class="mode-blurb">${m.blurb}</span>
-      </span>
-      <span class="mode-check" aria-hidden="true"></span>
+    <button class="mode-tab" role="radio" data-mode="${m.id}" aria-checked="${m.id === prefs.mode}">
+      <span class="route route-${m.id}">${m.code}</span><span>${m.title}</span>
     </button>`,
   ).join('');
+  $('#mode-desc', menu).textContent = MODES.find((m) => m.id === prefs.mode)!.blurb;
 
-  $('#regions', menu).innerHTML = REGIONS.map((r) => {
-    const pool = countriesIn(r.id);
-    const best = loadBest(prefs.mode, r.id);
-    const wide = r.id === 'world';
-    return `
-    <button class="region${wide ? ' wide' : ''}" data-region="${r.id}" style="--line: ${r.color}">
-      <span class="region-map">${thumbnail(r, new Set(pool.map((c) => c.code)), wide ? 420 : 220, wide ? 210 : 140)}</span>
-      <span class="region-meta">
-        <span class="region-head">${badge(r)}<span class="region-name">${r.name}</span></span>
-        <span class="region-rail" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <span class="region-tag">${r.tagline}</span>
-        <span class="region-foot">
-          <span class="region-count">${pool.length} countries</span>
-          <span class="region-best">${best ? `<b>${Math.round(best.score * 100)}%</b> ${formatTime(best.time)}` : '—'}</span>
-        </span>
-      </span>
-    </button>`;
-  }).join('');
-
-  $<HTMLInputElement>('#opt-hints').checked = prefs.hints;
-  $<HTMLInputElement>('#opt-sound').checked = !isMuted();
+  const groups = [...new Set(REGIONS.map((r) => r.group))];
+  $('#regions', menu).innerHTML = groups
+    .map(
+      (group) => `
+    <div class="region-group">
+      <h3>${group}</h3>
+      <ul>${REGIONS.filter((r) => r.group === group)
+        .map((r) => {
+          const best = loadBest(prefs.mode, r.id);
+          return `<li><button class="region-row" data-region="${r.id}" aria-pressed="${r.id === prefs.region}" style="--line: ${r.color}">
+            ${badge(r)}
+            <span class="row-name">${r.name}<small>${r.tagline}</small></span>
+            <span class="row-count">${countriesIn(r.id).length}</span>
+            <span class="row-best">${best ? `${Math.round(best.score * 100)}%` : '—'}</span>
+          </button></li>`;
+        })
+        .join('')}</ul>
+    </div>`,
+    )
+    .join('');
+  renderSelection();
 }
 
-menu.addEventListener('click', (e) => {
+/** Updates the highlighted row, the preview and the start bar for the selected region. */
+function renderSelection() {
+  const r = regionById(prefs.region);
+  menu.querySelectorAll<HTMLElement>('.region-row').forEach((row) => row.setAttribute('aria-pressed', String(row.dataset.region === r.id)));
+  const best = loadBest(prefs.mode, r.id);
+  $('#preview', menu).innerHTML = `
+    <div class="preview-map" style="--line: ${r.color}">${thumbFor(r)}</div>
+    <div class="preview-body">
+      <div class="preview-head">${badge(r)}<h2>${r.name}</h2></div>
+      <p class="preview-tag">${r.tagline}</p>
+      <dl class="preview-stats">
+        <div><dt>Countries</dt><dd>${countriesIn(r.id).length}</dd></div>
+        <div><dt>Best</dt><dd>${best ? `${Math.round(best.score * 100)}%` : '—'}</dd></div>
+        <div><dt>Best time</dt><dd>${best ? formatTime(best.time) : '—'}</dd></div>
+      </dl>
+      <button class="btn start-btn" data-start>Start <span>${modeTitle(prefs.mode)}</span><kbd>Enter</kbd></button>
+    </div>`;
+  $('#start-bar').innerHTML = `
+    <span class="start-bar-label">${badge(r)}<span><b>${r.name}</b><small>${modeTitle(prefs.mode)}</small></span></span>
+    <button class="btn" data-start>Start</button>`;
+}
+
+function selectRegion(id: RegionId) {
+  if (id === prefs.region) return;
+  prefs.region = id;
+  writePref('region', id);
+  renderSelection();
+}
+
+function startSelected() {
+  history.pushState({ fromMenu: true }, '', routeUrl(prefs.region, prefs.mode));
+  start(prefs.region, countriesIn(prefs.region), true);
+}
+
+const pickRegion = (e: Event) => {
   const t = e.target as HTMLElement;
   const mode = t.closest<HTMLElement>('[data-mode]')?.dataset.mode as Mode | undefined;
-  if (mode) {
+  if (mode && mode !== prefs.mode) {
     prefs.mode = mode;
     writePref('mode', mode);
     sfx.click();
     renderMenu();
   }
   const region = t.closest<HTMLElement>('[data-region]')?.dataset.region as RegionId | undefined;
-  if (region) {
-    history.pushState({ fromMenu: true }, '', routeUrl(region, prefs.mode));
-    start(region, countriesIn(region), true);
-  }
+  if (region) selectRegion(region);
+  if (t.closest('[data-start]')) startSelected();
+  if (t.closest('#open-settings')) settings.showModal();
+};
+menu.addEventListener('click', pickRegion);
+// Double-clicking a region starts it straight away.
+menu.addEventListener('dblclick', (e) => {
+  if ((e.target as HTMLElement).closest('[data-region]')) startSelected();
+});
+
+const settings = $<HTMLDialogElement>('#settings');
+settings.addEventListener('click', (e) => {
+  // Close on the ✕ or a click on the backdrop.
+  if ((e.target as HTMLElement).closest('[data-close]') || e.target === settings) settings.close();
 });
 
 $('#opt-hints').addEventListener('change', (e) => {
@@ -109,7 +158,26 @@ $('#opt-hints').addEventListener('change', (e) => {
   writePref('hints', prefs.hints ? '1' : '0');
 });
 $('#opt-sound').addEventListener('change', (e) => setMuted(!(e.target as HTMLInputElement).checked));
+$<HTMLInputElement>('#opt-hints').checked = prefs.hints;
+$<HTMLInputElement>('#opt-sound').checked = !isMuted();
 
+// Arrow keys move through regions and Enter starts, on the menu only.
+document.addEventListener('keydown', (e) => {
+  if (menu.hidden || settings.open || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const i = REGIONS.findIndex((r) => r.id === prefs.region);
+    const next = REGIONS[(i + (e.key === 'ArrowDown' ? 1 : -1) + REGIONS.length) % REGIONS.length];
+    selectRegion(next.id);
+    // Focus follows the selection, so Enter starts it rather than pressing whatever button had focus.
+    menu.querySelector<HTMLElement>(`[data-region="${next.id}"]`)?.focus();
+  }
+  const onButton = (e.target as HTMLElement).closest('button');
+  if (e.key === 'Enter' && (!onButton || onButton.matches('.region-row'))) {
+    e.preventDefault();
+    startSelected();
+  }
+});
 
 // ---------- Play ----------
 
@@ -137,6 +205,10 @@ let timer = 0;
 function start(region: RegionId, pool: Country[], full: boolean) {
   results.close();
   game = new Game(prefs.mode, region, pool);
+  if (full && region !== prefs.region) {
+    prefs.region = region;
+    writePref('region', region);
+  }
   pending = null;
   ranked = full && !prefs.hints;
   menu.hidden = true;
