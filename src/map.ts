@@ -81,6 +81,7 @@ export class MapView {
   private repoll = 0;
   private hovered: string | null = null;
   private frame = 0;
+  private resizer: ResizeObserver;
   /** The starting view; zoomed in on tall screens so wide maps aren't a thin strip. */
   private home: ZoomTransform = zoomIdentity;
   private patterns: SVGPatternElement[] = [];
@@ -109,12 +110,20 @@ export class MapView {
     });
 
     let pending = 0;
-    new ResizeObserver(() => {
+    this.resizer = new ResizeObserver(() => {
       cancelAnimationFrame(pending);
       pending = requestAnimationFrame(() => {
         if (this.region && (host.clientWidth !== this.width || host.clientHeight !== this.height)) this.render();
       });
-    }).observe(host);
+    });
+    this.resizer.observe(host);
+  }
+
+  /** Stops watching the host's size and removes the map, for when its screen goes away. */
+  destroy() {
+    this.resizer.disconnect();
+    cancelAnimationFrame(this.frame);
+    this.svg.remove();
   }
 
   show(region: RegionDef, active: Set<string>, pointsOnly: Country[]) {

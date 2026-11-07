@@ -875,6 +875,12 @@ kbd {
   background: var(--sea);
 }
 
+/* The D3 map draws into its own layer; React owns the overlays beside it. */
+.map-layer {
+  position: absolute;
+  inset: 0;
+}
+
 #play.pointing .map {
   cursor: pointer;
 }
