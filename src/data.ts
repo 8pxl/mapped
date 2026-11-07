@@ -88,11 +88,8 @@ export const PALETTE = [
   '#b5793a', // brown
 ];
 
-/**
- * Gives every country its own colour, never the same as a neighbour's.
- * Greedy colouring, busiest countries first, picking the least-used allowed colour so the palette spreads evenly.
- */
-function colourCountries(topo: CountriesTopology) {
+/** Which quizzable countries share a land border, from the atlas topology. */
+function landNeighbours(topo: CountriesTopology) {
   const geoms = topo.objects.countries.geometries;
   const codeByGeom = new Map(meta.filter((c) => c.geom).map((c) => [c.geom!, c.code]));
   const owner = (i: number) => {
@@ -108,6 +105,14 @@ function colourCountries(topo: CountriesTopology) {
       if (b && b !== a) adj.get(a)!.add(b);
     }
   });
+  return adj;
+}
+
+/**
+ * Gives every country its own colour, never the same as a neighbour's.
+ * Greedy colouring, busiest countries first, picking the least-used allowed colour so the palette spreads evenly.
+ */
+function colourCountries(adj: Map<string, Set<string>>) {
   const used = new Map(PALETTE.map((c) => [c, 0]));
   const colour = new Map<string, string>();
   const order = [...adj.keys()].sort((a, b) => adj.get(b)!.size - adj.get(a)!.size || a.localeCompare(b));
@@ -120,7 +125,10 @@ function colourCountries(topo: CountriesTopology) {
   return colour;
 }
 
-export const COLOUR_OF = colourCountries(atlas50 as unknown as CountriesTopology);
+const NEIGHBOURS = landNeighbours(atlas50 as unknown as CountriesTopology);
+/** Countries with no land border: candidates for an enlarged click zone. */
+export const ISLANDS = new Set([...NEIGHBOURS].filter(([, n]) => n.size === 0).map(([code]) => code));
+export const COLOUR_OF = colourCountries(NEIGHBOURS);
 export const LAND = feature(atlas50 as unknown as CountriesTopology, (atlas50 as unknown as CountriesTopology).objects.land);
 /** Coarser shapes for small thumbnails. */
 export const SHAPES_LOW = buildShapes(atlas110 as unknown as CountriesTopology);

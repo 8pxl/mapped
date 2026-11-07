@@ -1,16 +1,15 @@
-import { geoGraticule10, geoPath, type GeoPath } from 'd3-geo';
+import { geoDistance, geoGraticule10, geoPath, type GeoPath, type GeoProjection } from 'd3-geo';
 import { select, type Selection } from 'd3-selection';
 import 'd3-transition';
 import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zoom';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
-import { COLOUR_OF, LAND, PALETTE, SHAPES, SHAPES_LOW, type Country, type Shape } from './data';
+import { COLOUR_OF, ISLANDS, LAND, PALETTE, SHAPES, SHAPES_LOW, type Country, type Shape } from './data';
 import { fitTarget, fittedProjection, type RegionDef } from './regions';
+import { islandZones, zonePath, type Site } from './zones';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 /** Countries smaller than this share of the map's width get a round marker so they can still be clicked. */
 const TINY_SHARE = 0.0065;
-/** Inner-shading layers per finished country; more steps give a smoother falloff. */
-const SHADE_STEPS = 6;
 
 export type Paint = 'c1' | 'c2' | 'c3' | 'missed';
 
@@ -70,6 +69,9 @@ export class MapView {
   private markerLayer!: SVGGElement;
   private fxLayer!: SVGGElement;
   private paintLayer!: SVGGElement;
+  private zoneLayer!: SVGGElement;
+  private zones = new Map<string, SVGPathElement>();
+  private projection!: GeoProjection;
   private hoverOutline!: SVGPathElement;
   private defs!: SVGDefsElement;
   private revealed: string | null = null;
@@ -203,9 +205,11 @@ export class MapView {
       .projection()
       .fitExtent([[inset.left + pad, inset.top + pad], [w - inset.right - pad, h - inset.bottom - pad]], fitTarget(region));
     this.path = geoPath(projection);
+    this.projection = projection;
     this.svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
     this.svg.replaceChildren();
     this.paths.clear();
+    this.zones.clear();
     this.markers.clear();
     this.centroids.clear();
     this.bounds.clear();
@@ -219,6 +223,8 @@ export class MapView {
       el('path', { class: 'graticule', d: this.path(geoGraticule10()) ?? '' }),
       el('path', { class: 'coast-halo', d: this.path(LAND) ?? '' }),
     );
+    this.zoneLayer = el('g', { class: 'zones' });
+    zoomLayer.append(this.zoneLayer);
     const countries = el('g', { class: 'countries' });
     const tiny: Shape[] = [];
     for (const shape of SHAPES) {
@@ -255,6 +261,7 @@ export class MapView {
       this.bounds.set(c.code, [at, at]);
       this.addMarker(c.code, c.code, at, 0);
     }
+    this.buildZones(projection, w, h);
     this.fxLayer = el('g', { class: 'fx' });
     this.svg.append(zoomLayer, this.markerLayer, this.fxLayer);
 
@@ -268,6 +275,68 @@ export class MapView {
       .extent([[0, 0], [w, h]]);
     this.sel.call(this.zoomer).on('dblclick.zoom', null);
     this.sel.call(this.zoomer.transform, zoomIdentity);
+  }
+
+  /**
+   * Gives small island countries a larger click zone around their islands (see zones.ts). Coastline points of every
+   * visible shape take part, so a zone stops halfway to the next coast, including coasts that aren't in the quiz.
+   */
+  private buildZones(projection: GeoProjection, w: number, h: number) {
+    const pad = Math.max(14, w * 0.022);
+    const zonedBelow = w * 0.03;
+    const clip = projection.clipAngle();
+    const [lon, lat] = projection.rotate();
+    // Azimuthal views hide the far hemisphere; points there would project onto the visible disc.
+    // An unclipped projection reports a clip angle of 0.
+    const visible = (p: [number, number]) => !clip || geoDistance(p, [-lon, -lat]) < (clip * Math.PI) / 180 - 0.01;
+    const inView = ([x, y]: [number, number]) => x > -w && x < 2 * w && y > -h && y < 2 * h;
+    const sites: Site[] = [];
+    for (const shape of SHAPES) {
+      const g = shape.feature.geometry;
+      if (!g || (g.type !== 'Polygon' && g.type !== 'MultiPolygon')) continue;
+      const code = shape.code && this.active.has(shape.code) ? shape.code : null;
+      const zoned = !!code && ISLANDS.has(code) && sizeOf(this.path.bounds(largestPart(shape.feature as Feature))) < zonedBelow;
+      for (const poly of g.type === 'Polygon' ? [g.coordinates] : g.coordinates) {
+        const ring = poly[0];
+        const step = Math.max(1, Math.ceil(ring.length / 30));
+        const pts: [number, number][] = [];
+        for (let i = 0; i < ring.length; i += step) {
+          const lonlat = ring[i] as [number, number];
+          const p = visible(lonlat) ? projection(lonlat) : null;
+          if (p && inView(p)) pts.push(p);
+        }
+        if (!pts.length) continue;
+        const box = zoned ? padBox(pts, pad) : undefined;
+        for (const at of pts) sites.push({ at, code, box });
+      }
+    }
+    for (const c of this.pointsOnly) {
+      const at = this.centroids.get(c.code);
+      if (at) sites.push({ at, code: c.code, box: padBox([at], pad) });
+    }
+    for (const [code, zone] of islandZones(sites, w, h)) {
+      const p = el<SVGPathElement>('path', { class: 'zone', d: zonePath(zone), 'data-key': code });
+      this.zoneLayer.append(p);
+      this.zones.set(code, p);
+    }
+  }
+
+  /**
+   * Draws an arrow from a wrong click toward the right country.
+   * Returns the great-circle distance and a compass direction for the toast.
+   */
+  pointToward(at: [number, number], code: string) {
+    const target = this.centroids.get(code);
+    if (!target) return null;
+    const [x0, y0] = this.transform.apply(at);
+    const [x1, y1] = this.transform.apply(target);
+    const angle = Math.atan2(y1 - y0, x1 - x0);
+    const from = this.projection.invert?.(at);
+    const to = this.projection.invert?.(target);
+    const km = from && to ? Math.round((geoDistance(from, to) * 6371) / 10) * 10 : null;
+    const dir = COMPASS[Math.round(((-angle * 180) / Math.PI + 360) / 45) % 8];
+    this.addFx(at, arrowFx(angle, km ? `${km.toLocaleString()} km` : ''), 1700);
+    return { km, dir };
   }
 
   private addMarker(code: string, key: string, at: [number, number], size: number) {
@@ -353,12 +422,12 @@ export class MapView {
   }
 
   private elementsFor(code: string): Element[] {
-    return [this.paths.get(code), this.markers.get(code)?.el].filter((e): e is SVGPathElement | SVGGElement => !!e);
+    return [this.paths.get(code), this.markers.get(code)?.el, this.zones.get(code)].filter((e): e is SVGPathElement | SVGGElement => !!e);
   }
 
   /**
-   * Tints a found country and outlines it in its own colour, clipped to the inside so neighbours don't overlap it.
-   * The outcome shows in the line style (see .ring in style.css).
+   * Hatches a found country in its own colour and traces its border. The outcome shows in the border style:
+   * solid for first try, dashed for retries; misses are white crosshatching (see style.css).
    */
   private applyPaint(code: string) {
     const paint = this.paints.get(code);
@@ -383,10 +452,8 @@ export class MapView {
     clip.append(el('use', ref));
     // The attribute (not CSS) keeps strokes a fixed screen width: <use> copies carry it, but CSS rules don't reach them.
     this.defs.append(el('path', { id: `outline-${code}`, d, 'vector-effect': 'non-scaling-stroke' }), clip);
-    // Wide, faint inner strokes stack into a soft falloff from the border inward (the clip hides their outer half).
-    // The narrow top stroke is the highlighted border. Which layers show depends on the finish style in style.css.
+    // The border, clipped to the inside so neighbouring borders sit side by side instead of overlapping.
     const g = el('g', { class: `paint p-${paint}`, 'clip-path': `url(#clip-${code})`, 'data-ring': code });
-    for (let i = 1; i <= SHADE_STEPS; i++) g.append(el('use', { ...ref, class: `shade s${i}` }));
     g.append(el('use', { ...ref, class: 'edge' }));
     if (paint !== 'missed') g.style.setProperty('--fill', colour);
     this.paintLayer.append(g);
@@ -438,6 +505,33 @@ function el<T extends SVGElement = SVGGElement>(tag: string, attrs: Record<strin
   const e = document.createElementNS(SVG_NS, tag) as T;
   for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
   return e;
+}
+
+const COMPASS = ['east', 'northeast', 'north', 'northwest', 'west', 'southwest', 'south', 'southeast'];
+
+function padBox(pts: [number, number][], pad: number): [[number, number], [number, number]] {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const [x, y] of pts) {
+    x0 = Math.min(x0, x);
+    y0 = Math.min(y0, y);
+    x1 = Math.max(x1, x);
+    y1 = Math.max(y1, y);
+  }
+  return [[x0 - pad, y0 - pad], [x1 + pad, y1 + pad]];
+}
+
+/** An arrow pointing from a wrong click toward the answer, with the distance written past its tip. */
+function arrowFx(angle: number, label: string) {
+  const g = el('g', { class: 'hint' });
+  const arrow = el('g', { class: 'hint-arrow', transform: `rotate(${(angle * 180) / Math.PI})` });
+  arrow.append(el('path', { d: 'M16 0H52M44-7L53 0 44 7' }));
+  g.append(arrow);
+  if (label) {
+    const t = el('text', { class: 'hint-label', x: String(Math.cos(angle) * 74), y: String(Math.sin(angle) * 74 + 4), 'text-anchor': 'middle' });
+    t.textContent = label;
+    g.append(t);
+  }
+  return g;
 }
 
 const sizeOf = ([[x0, y0], [x1, y1]]: [[number, number], [number, number]]) => Math.max(x1 - x0, y1 - y0);

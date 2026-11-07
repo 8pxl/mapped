@@ -523,38 +523,6 @@ kbd {
   border-top: 1px solid var(--rule);
 }
 
-.seg {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 600;
-}
-
-.seg-opts {
-  display: inline-flex;
-  padding: 3px;
-  border-radius: 10px;
-  box-shadow: inset 0 0 0 1px var(--rule-2);
-}
-
-.seg-opts button {
-  padding: 5px 10px;
-  font-family: var(--f-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--mute);
-  background: none;
-  border: 0;
-  border-radius: 7px;
-}
-
-.seg-opts button[aria-pressed='true'] {
-  color: #000;
-  background: var(--white);
-}
-
 .check {
   display: inline-flex;
   align-items: center;
@@ -878,30 +846,14 @@ kbd {
 .land.active.p-missed { --fill: var(--missed); }
 
 /* ---------- Finished countries ----------
-   Each has its own colour (--fill, set inline). Three finish styles, chosen by [data-finish] on <html>:
-   tonal: tint that deepens toward the edges + light border
-   hatch (default): diagonal hatching in the country's colour + light border
-   glow: dark fill, soft inner glow + bright border
-   outline: the country stays unfilled; only its border is traced in its colour */
+   Hatched in the country's own colour (--fill and --hatch, set inline) with its border traced in that colour.
+   Solid border: first try. Dashed: needed retries. Missed: white crosshatch. */
 
 .land.active[class*='p-'] {
-  fill: color-mix(in oklch, var(--fill) var(--tint, 22%), var(--land));
-}
-
-.land.active[class*='p-'].hover {
-  fill: color-mix(in oklch, var(--fill) calc(var(--tint, 22%) + 14%), var(--land));
-}
-
-[data-finish='hatch'] .land.active[class*='p-']:not(.p-missed) {
   fill: var(--hatch);
 }
 
-[data-finish='glow'] {
-  --tint: 7%;
-}
-
-.land.active.p-missed,
-.land.active.p-missed.hover {
+.land.active.p-missed {
   fill: url(#hatch);
 }
 
@@ -912,27 +864,10 @@ kbd {
 .paint use {
   fill: none;
   stroke: var(--fill);
+  stroke-width: 5;
   stroke-linejoin: round;
 }
 
-/* Six stacked inner strokes, each a little wider and equally faint: a smooth falloff from the border inward. */
-.paint .shade {
-  opacity: var(--shade-alpha, 0.06);
-}
-
-.paint .s1 { stroke-width: calc(6px * var(--spread, 1)); }
-.paint .s2 { stroke-width: calc(12px * var(--spread, 1)); }
-.paint .s3 { stroke-width: calc(18px * var(--spread, 1)); }
-.paint .s4 { stroke-width: calc(24px * var(--spread, 1)); }
-.paint .s5 { stroke-width: calc(30px * var(--spread, 1)); }
-.paint .s6 { stroke-width: calc(36px * var(--spread, 1)); }
-
-.paint .edge {
-  stroke: color-mix(in oklch, var(--fill) 60%, white);
-  stroke-width: 5;
-}
-
-/* Needed retries: the border breaks into dashes. */
 .paint.p-c2 .edge,
 .paint.p-c3 .edge {
   stroke-dasharray: 6 4;
@@ -942,52 +877,6 @@ kbd {
   --fill: var(--missed);
 }
 
-.paint.p-missed .shade,
-[data-finish='hatch'] .paint .shade {
-  display: none;
-}
-
-/* Hatched keeps borders in the pure line colour, like a subway map. */
-[data-finish='hatch'] .paint:not(.p-missed) .edge {
-  stroke: var(--fill);
-}
-
-[data-finish='glow'] {
-  --spread: 1.35;
-  --shade-alpha: 0.075;
-}
-
-[data-finish='outline'] {
-  --tint: 0%;
-}
-
-[data-finish='outline'] .land.active.p-missed {
-  fill: var(--land);
-}
-
-[data-finish='outline'] .land.active[class*='p-'].hover {
-  fill: var(--hover-tint);
-}
-
-[data-finish='outline'] .paint .shade {
-  display: none;
-}
-
-[data-finish='outline'] .paint .edge {
-  stroke: var(--fill);
-  stroke-width: 5;
-}
-
-[data-finish='outline'] .marker[class*='p-'] .dot {
-  fill: #000;
-  stroke: var(--fill);
-  stroke-width: 2.5;
-}
-
-[data-finish='glow'] .paint .edge {
-  stroke: color-mix(in oklch, var(--fill) 35%, white);
-}
-
 /* Hover: a white outline drawn above every border, plus a light wash. */
 .hover-outline {
   fill: #ffffff14;
@@ -995,6 +884,77 @@ kbd {
   stroke-width: 2;
   stroke-linejoin: round;
   pointer-events: none;
+}
+
+/* Click zones around small island countries (Seterra-style): dashed, faint until hovered or found. */
+.zone {
+  fill: transparent;
+  stroke: #ffffff40;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  transition: fill 0.15s;
+}
+
+.zone.hover {
+  fill: #ffffff0f;
+  stroke: #ffffffb0;
+}
+
+.zone[class*='p-'] {
+  stroke: var(--fill);
+  fill: color-mix(in srgb, var(--fill) 8%, transparent);
+}
+
+.zone.p-missed {
+  --fill: var(--missed);
+}
+
+.zone.flash {
+  animation: flash 0.6s ease-out;
+}
+
+.zone.reveal {
+  animation: blink 0.9s steps(1) infinite;
+}
+
+/* Wrong-click hint: an arrow toward the answer with the distance past its tip. */
+.hint {
+  animation: hint 1.7s var(--ease-out) forwards;
+}
+
+.hint-arrow path {
+  fill: none;
+  stroke: var(--white);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: none;
+}
+
+.hint-label {
+  font-family: var(--f-mono);
+  font-weight: 700;
+  font-size: 12px;
+  fill: var(--white);
+  paint-order: stroke;
+  stroke: #000;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+@keyframes hint {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  12%,
+  75% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Tiny countries are stations: black dot, white ring, colour once found. */
@@ -1527,92 +1487,48 @@ kbd {
   font-size: 12px;
 }
 
+/* Every swatch is a tiny finished country: hatch + border, so the rows differ only in what the map shows. */
 .legend i {
-  width: 16px;
-  height: 12px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--k) 18%, transparent);
-  box-shadow: inset 0 0 0 2px var(--k);
+  --k: #2f6fe8;
+  width: 18px;
+  height: 13px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(-45deg, var(--k) 0 1.5px, #1c1c1e 1.5px 4px);
+  border: 2px solid var(--k);
 }
 
-.legend .keys {
-  margin: 10px 0 0;
-  padding-top: 8px;
-  border-top: 1px solid var(--rule);
+.legend i.k-retry {
+  border-style: dashed;
+}
+
+.legend i.k-missed {
+  --k: var(--missed);
+  background:
+    repeating-linear-gradient(45deg, #ffffffb0 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-45deg, #ffffffb0 0 1px, transparent 1px 4px),
+    #1c1c1e;
+}
+
+.tips {
+  flex-basis: 100%;
+  margin: 0;
   font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--mute);
 }
 
-.legend .keys kbd {
-  margin-right: 2px;
+.tips kbd {
+  margin: 0 4px 0 12px;
   color: var(--white);
+  opacity: 1;
 }
 
-.legend .keys kbd + kbd,
-.legend .keys kbd:not(:first-child) {
-  margin-left: 8px;
+.tips kbd:first-child {
+  margin-left: 0;
 }
 
-.legend i.k-first {
-  --k: #2f6fe8;
-}
-
-.legend i.k-retry {
-  --k: #fccc0a;
-  background: color-mix(in oklch, var(--k) 22%, #1c1c1e);
-  box-shadow: none;
-  border: 1.5px dashed color-mix(in oklch, var(--k) 55%, white);
-}
-
-.legend i.k-first {
-  background: color-mix(in oklch, var(--k) 22%, #1c1c1e);
-  box-shadow: inset 0 0 0 1.5px color-mix(in oklch, var(--k) 55%, white), inset 0 0 6px 2px color-mix(in oklch, var(--k) 45%, transparent);
-}
-
-.legend i.k-missed {
-  background:
-    repeating-linear-gradient(45deg, #ffffffa0 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(-45deg, #ffffffa0 0 1px, transparent 1px 4px),
-    #1c1c1e;
-  box-shadow: inset 0 0 0 1.5px var(--missed);
-}
-
-.legend i.k-station {
-  width: 12px;
-  margin: 0 2px;
-  border-radius: 50%;
-  background: #000;
-  box-shadow: inset 0 0 0 2px var(--white);
-}
-
-.north {
-  position: absolute;
-  z-index: 19;
-  top: 18px;
-  right: 22px;
-  width: 34px;
-  pointer-events: none;
-}
-
-.north path {
-  fill: var(--white);
-}
-
-.north circle {
-  fill: #000000b0;
-  stroke: var(--white);
-  stroke-width: 2.5;
-}
-
-.north text {
-  font-family: var(--f-sans);
-  font-weight: 900;
-  font-size: 17px;
-  fill: var(--white);
-}
 
 /* ---------- Results ---------- */
 
@@ -1910,8 +1826,7 @@ kbd {
     font-size: 17px;
   }
 
-  .streak,
-  .north {
+  .streak {
     display: none;
   }
 

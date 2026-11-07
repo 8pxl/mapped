@@ -10,22 +10,11 @@ import { REGIONS, regionById, type RegionDef, type RegionId } from './regions';
 
 const $ = <T extends HTMLElement>(sel: string, root: ParentNode = document) => root.querySelector(sel) as T;
 
-const FINISHES = ['tonal', 'hatch', 'glow', 'outline'] as const;
-type Finish = (typeof FINISHES)[number];
-const FINISH_NAMES: Record<Finish, string> = { tonal: 'Tonal', hatch: 'Hatched', glow: 'Glow', outline: 'Outline' };
-
 const prefs = {
   mode: (readPref('mode') as Mode) || 'name',
   hints: readPref('hints') === '1',
-  finish: (FINISHES as readonly string[]).includes(readPref('finish')) ? (readPref('finish') as Finish) : 'hatch',
 };
 
-function setFinish(finish: Finish) {
-  prefs.finish = finish;
-  writePref('finish', finish);
-  document.documentElement.dataset.finish = finish;
-  document.querySelectorAll<HTMLElement>('#opt-finish [data-finish]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.finish === finish)));
-}
 
 function readPref(key: string) {
   try {
@@ -119,10 +108,7 @@ $('#opt-hints').addEventListener('change', (e) => {
   writePref('hints', prefs.hints ? '1' : '0');
 });
 $('#opt-sound').addEventListener('change', (e) => setMuted(!(e.target as HTMLInputElement).checked));
-$('#opt-finish').addEventListener('click', (e) => {
-  const finish = (e.target as HTMLElement).closest<HTMLElement>('[data-finish]')?.dataset.finish as Finish | undefined;
-  if (finish) setFinish(finish);
-});
+
 
 // ---------- Play ----------
 
@@ -281,7 +267,11 @@ map.onPick = ({ shape, active, at }: PickEvent) => {
     map.miss(at);
     sfx.wrong();
     shake();
-    toast(`That's ${shape.name} <small>${r.attemptsLeft} ${r.attemptsLeft === 1 ? 'try' : 'tries'} left</small>`, 'bad');
+    // Point toward the answer; in Flag-only mode say where it is without naming it.
+    const hint = map.pointToward(at, target.code);
+    const where = hint ? `${hint.km ? `${hint.km.toLocaleString()} km ` : ''}${hint.dir}` : '';
+    const subject = game.mode === 'flag' ? "It's" : `${target.name} is`;
+    toast(`That's ${shape.name}. <small>${where ? `${subject} ${where}` : `${r.attemptsLeft} ${r.attemptsLeft === 1 ? 'try' : 'tries'} left`}</small>`, 'bad');
     updatePips();
     updateHud();
     return;
@@ -426,11 +416,6 @@ document.addEventListener('keydown', (e) => {
     if (!e.repeat) map.pickAtPointer();
   }
   if (e.key === 's' || e.key === 'S') $<HTMLButtonElement>('#skip')?.click();
-  if (e.key === 'v' || e.key === 'V') {
-    const next = FINISHES[(FINISHES.indexOf(prefs.finish) + 1) % FINISHES.length];
-    setFinish(next);
-    toast(`Finish style <small>${FINISH_NAMES[next]}</small>`);
-  }
   if (e.key === '+' || e.key === '=') map.zoomBy(1.8);
   if (e.key === '-') map.zoomBy(1 / 1.8);
   if (e.key === '0') map.resetZoom();
@@ -441,6 +426,5 @@ document.addEventListener('keyup', (e) => {
   if (e.key === ' ' && !play.hidden && !results.open) e.preventDefault();
 });
 
-setFinish(prefs.finish);
 renderMenu();
 syncSound();
