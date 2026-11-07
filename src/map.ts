@@ -41,6 +41,8 @@ interface Marker {
 interface Fx {
   el: SVGGElement;
   at: [number, number];
+  /** Called with the zoom scale whenever the view moves, for effects whose shape depends on it. */
+  rescale?: (k: number) => void;
 }
 
 export class MapView {
@@ -347,11 +349,16 @@ export class MapView {
     const [x0, y0] = this.transform.apply(at);
     const [x1, y1] = this.transform.apply(target);
     const angle = Math.atan2(y1 - y0, x1 - x0);
+    // Map units between the click and the answer: times the zoom scale, the arrow's room on screen.
+    const span = Math.hypot(target[0] - at[0], target[1] - at[1]);
     const from = this.projection.invert?.(at);
     const to = this.projection.invert?.(target);
     const km = from && to ? Math.round((geoDistance(from, to) * 6371) / 10) * 10 : null;
     const dir = COMPASS[Math.round(((-angle * 180) / Math.PI + 360) / 45) % 8];
-    this.addFx(at, arrowFx(angle, km ? `${km.toLocaleString()} km` : ''), 1700);
+    const hint = arrowFx(angle, km ? `${km.toLocaleString()} km` : '');
+    const fx = this.addFx(at, hint.el, 1700);
+    fx.rescale = (k) => hint.fit(span * k);
+    fx.rescale(this.transform.k);
     return { km, dir };
   }
 
@@ -411,6 +418,7 @@ export class MapView {
     for (const f of this.fx) {
       const [x, y] = t.apply(f.at);
       f.el.setAttribute('transform', `translate(${x},${y})`);
+      f.rescale?.(t.k);
     }
     // Panning or zooming moves countries under a still cursor; re-check what it is over.
     if (this.pointer && !this.repoll) {
@@ -442,7 +450,7 @@ export class MapView {
     const [x, y] = this.transform.apply(at);
     g.setAttribute('transform', `translate(${x},${y})`);
     this.fxLayer.append(g);
-    const fx = { el: g, at };
+    const fx: Fx = { el: g, at };
     this.fx.push(fx);
     if (life) setTimeout(() => this.removeFx(fx), life);
     return fx;
@@ -582,18 +590,54 @@ function padBox(pts: [number, number][], pad: number): [[number, number], [numbe
   return [[x0 - pad, y0 - pad], [x1 + pad, y1 + pad]];
 }
 
-/** An arrow pointing from a wrong click toward the answer, with the distance written past its tip. */
+/** The arrow's full size, in screen px from the click: the shaft starts clear of the miss cross. */
+const ARROW = { start: 16, tip: 53, head: 9, label: 74 };
+
+/**
+ * An arrow pointing from a wrong click toward the answer, with the distance written past its tip.
+ * `fit` sizes it to the on-screen distance to the answer: a close neighbour gets a shorter arrow that stops at it
+ * instead of pointing past, and its label moves behind the click so it doesn't cover the answer.
+ */
 function arrowFx(angle: number, label: string) {
   const g = el('g', { class: 'hint' });
   const arrow = el('g', { class: 'hint-arrow', transform: `rotate(${(angle * 180) / Math.PI})` });
-  arrow.append(el('path', { d: 'M16 0H52M44-7L53 0 44 7' }));
+  const shaft = el('path', {});
+  arrow.append(shaft);
   g.append(arrow);
-  if (label) {
-    const t = el('text', { class: 'hint-label', x: String(Math.cos(angle) * 74), y: String(Math.sin(angle) * 74 + 4), 'text-anchor': 'middle' });
-    t.textContent = label;
-    g.append(t);
+  const text = label ? el('text', { class: 'hint-label' }) : null;
+  if (text) {
+    text.textContent = label;
+    g.append(text);
   }
-  return g;
+  const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
+  let last = -1;
+  const fit = (dist: number) => {
+    // Stop a few px short of the answer's centre, so the head points at it rather than covering it.
+    const tip = Math.round(Math.min(ARROW.tip, dist - 3));
+    if (tip === last) return;
+    last = tip;
+    const full = tip >= ARROW.tip;
+    // Right on top of the answer's centre: nowhere to point, so only the label shows.
+    arrow.style.display = tip < 1 ? 'none' : '';
+    // Too close to start clear of the cross: a short arrow through the cross still shows which way.
+    const start = tip < 24 ? tip - 14 : Math.min(ARROW.start, tip * 0.45);
+    const head = Math.min(ARROW.head, (tip - start) * 0.5);
+    const wing = (head * 7) / 9;
+    shaft.setAttribute('d', `M${start} 0H${tip - 1}M${tip - head} ${-wing}L${tip} 0 ${tip - head} ${wing}`);
+    if (!text) return;
+    if (full) {
+      text.setAttribute('x', String(cos * ARROW.label));
+      text.setAttribute('y', String(sin * ARROW.label + 4));
+      text.setAttribute('text-anchor', 'middle');
+    } else {
+      // Behind the click, anchored on its near end so the text clears the cross whatever its length.
+      const r = 18;
+      text.setAttribute('x', String(-cos * r));
+      text.setAttribute('y', String(-sin * r + 4 - sin * 6));
+      text.setAttribute('text-anchor', cos > 0.35 ? 'end' : cos < -0.35 ? 'start' : 'middle');
+    }
+  };
+  return { el: g, fit };
 }
 
 const sizeOf = ([[x0, y0], [x1, y1]]: [[number, number], [number, number]]) => Math.max(x1 - x0, y1 - y0);
