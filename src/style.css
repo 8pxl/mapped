@@ -1599,7 +1599,14 @@ kbd {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   color: var(--mute);
+  white-space: nowrap;
+}
+
+.res-kicker > span:not(.badge) {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .res-kicker .badge {
@@ -1615,6 +1622,8 @@ kbd {
 }
 
 .record {
+  flex: none;
+  white-space: nowrap;
   padding: 4px 8px;
   color: #000;
   background: var(--c2);
@@ -1643,8 +1652,15 @@ kbd {
   color: var(--mute);
 }
 
-.rank-stamp {
+.res-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
   margin-bottom: 2px;
+}
+
+.rank-stamp {
   padding: 7px 12px;
   font-weight: 800;
   font-size: 13px;
@@ -1798,8 +1814,9 @@ kbd {
 
 .res-actions .btn {
   height: 44px;
-  padding: 0 12px;
+  padding: 0 8px;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .res-actions .res-primary {
@@ -1947,8 +1964,81 @@ kbd {
     padding: 20px 20px 24px;
   }
 
+  .res-kicker {
+    letter-spacing: 0.06em;
+  }
+
+  .res-stats dt {
+    letter-spacing: 0.06em;
+  }
+
+  .res-stats div + div {
+    padding-left: 12px;
+  }
+
+  .res-stats dd {
+    font-size: 22px;
+  }
+
+  .res-actions .btn {
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+
   .res-actions {
     padding: 16px 20px 20px;
+  }
+}
+
+/* ---------- Touch screens: no hover, no keyboard ---------- */
+
+#play {
+  touch-action: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .pointer-only,
+  kbd {
+    display: none !important;
+  }
+
+  /* Without hover, a tapped card would stay lifted. */
+  .mode:hover,
+  .region:hover,
+  .btn-ghost:hover,
+  .zoom button:hover {
+    transform: none;
+  }
+
+  .region:hover {
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+
+  .region:hover .thumb .on {
+    filter: none;
+  }
+
+  .mode:active,
+  .region:active {
+    transform: scale(0.985);
+  }
+}
+
+@media (max-width: 760px) {
+  .ticket,
+  #play[data-mode='flag'] .ticket {
+    bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .zoom {
+    bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .toast {
+    max-width: calc(100% - 20px);
+    white-space: normal;
+    text-align: left;
+    border-radius: 14px;
   }
 }
 

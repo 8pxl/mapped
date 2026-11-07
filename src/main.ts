@@ -217,7 +217,8 @@ function updateHud() {
 
 let toastTimer = 0;
 function toast(html: string, tone: 'good' | 'bad' | 'meh' = 'meh') {
-  toastEl.innerHTML = html;
+  // One span, so the message wraps as a sentence beside the dot rather than as separate flex items.
+  toastEl.innerHTML = `<span>${html}</span>`;
   toastEl.className = `toast show tone-${tone}`;
   clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => toastEl.classList.remove('show'), 1600);
@@ -268,6 +269,7 @@ map.onPick = ({ shape, active, at }: PickEvent) => {
     map.flash(code);
     map.miss(at);
     sfx.wrong();
+    navigator.vibrate?.(35);
     shake();
     // Point toward the answer; in Flag-only mode say where it is without naming it.
     const hint = map.pointToward(at, target.code);
@@ -335,16 +337,18 @@ function showResults(g: Game, record: boolean) {
     <div class="res-main" tabindex="-1" autofocus>
       <header class="res-top">
         <span class="res-kicker">${badge(region)}<span>${region.name}</span><span class="sep">/</span><span>${g.mode === 'name' ? 'Name + Flag' : 'Flag only'}</span></span>
-        ${record ? '<span class="record">New best</span>' : ''}
       </header>
       <div class="res-hero">
         <div class="res-score">${Math.round(score * 100)}<span>%</span></div>
-        <div class="rank-stamp">${rank}</div>
+        <div class="res-badges">
+          ${record ? '<span class="record">New best</span>' : ''}
+          <div class="rank-stamp">${rank}</div>
+        </div>
       </div>
       <dl class="res-stats">
         <div><dt>Time</dt><dd>${formatTime(g.elapsed)}</dd></div>
         <div><dt>First try</dt><dd>${firstTry}<small>/${g.pool.length}</small></dd></div>
-        <div><dt>Best streak</dt><dd>${g.bestStreak}</dd></div>
+        <div><dt>Streak</dt><dd>${g.bestStreak}</dd></div>
       </dl>
       ${
         slips.length
@@ -363,7 +367,7 @@ function showResults(g: Game, record: boolean) {
     <footer class="res-actions${slips.length ? '' : ' no-retry'}">
       ${slips.length ? `<button class="btn res-primary" data-act="retry">Retry ${slips.length} to review</button>` : ''}
       <button class="btn ${slips.length ? 'alt' : ''}" data-act="again">Play again</button>
-      <button class="btn alt" data-act="map">View map</button>
+      <button class="btn alt" data-act="map">Map</button>
       <button class="btn alt" data-act="menu">Menu</button>
     </footer>`;
   results.showModal();
@@ -472,6 +476,11 @@ function goMenu() {
 }
 
 window.addEventListener('popstate', applyRoute);
+
+// iOS Safari zooms the whole page on a pinch outside the map (HUD, prompt card); the map handles its own pinch.
+document.addEventListener('gesturestart', (e) => {
+  if (!play.hidden) e.preventDefault();
+});
 
 syncSound();
 applyRoute();

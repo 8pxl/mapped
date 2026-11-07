@@ -29,9 +29,9 @@
         </section>
 
         <footer class="options">
-          <label class="check"><input type="checkbox" id="opt-hints" /> <span>Show names on hover <small>practice · unranked</small></span></label>
+          <label class="check pointer-only"><input type="checkbox" id="opt-hints" /> <span>Show names on hover <small>practice · unranked</small></span></label>
           <label class="check"><input type="checkbox" id="opt-sound" /> <span>Sound</span></label>
-          <p class="tips"><kbd>Space</kbd> clicks under the cursor <kbd>S</kbd> skips <kbd>Pinch</kbd> or <kbd>⌘ scroll</kbd> zooms</p>
+          <p class="tips pointer-only"><kbd>Space</kbd> clicks under the cursor <kbd>S</kbd> skips <kbd>Pinch</kbd> or <kbd>⌘ scroll</kbd> zooms</p>
         </footer>
       </div>
     </main>
@@ -67,8 +67,8 @@
         <div id="toast" class="toast" role="status"></div>
         <div id="tooltip" class="tooltip" hidden></div>
         <div class="zoom">
-          <button id="zoom-in" aria-label="Zoom in">+</button>
-          <button id="zoom-out" aria-label="Zoom out">&minus;</button>
+          <button id="zoom-in" class="pointer-only" aria-label="Zoom in">+</button>
+          <button id="zoom-out" class="pointer-only" aria-label="Zoom out">&minus;</button>
           <button id="zoom-reset" aria-label="Reset view">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6" /></svg>
           </button>

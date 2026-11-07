@@ -81,6 +81,8 @@ export class MapView {
   private repoll = 0;
   private hovered: string | null = null;
   private frame = 0;
+  /** The starting view; zoomed in on tall screens so wide maps aren't a thin strip. */
+  private home: ZoomTransform = zoomIdentity;
   private patterns: SVGPatternElement[] = [];
   private patternK = 0;
   private tiny = 9;
@@ -178,7 +180,7 @@ export class MapView {
   }
 
   resetZoom() {
-    this.sel.transition().duration(500).call(this.zoomer.transform, zoomIdentity);
+    this.sel.transition().duration(500).call(this.zoomer.transform, this.home);
   }
 
   /** Zooms so a country fills a comfortable share of the view. */
@@ -278,7 +280,8 @@ export class MapView {
       .translateExtent([[-inset.left, -inset.top], [w + inset.right, h + inset.bottom]])
       .extent([[0, 0], [w, h]]);
     this.sel.call(this.zoomer).on('dblclick.zoom', null);
-    this.sel.call(this.zoomer.transform, zoomIdentity);
+    this.home = this.homeView(region, inset, w, h);
+    this.sel.call(this.zoomer.transform, this.home);
   }
 
   /**
@@ -343,9 +346,29 @@ export class MapView {
     return { km, dir };
   }
 
+  /**
+   * On a screen much taller than the map (a phone in portrait), start zoomed so the map fills the height,
+   * centred on it; the rest is a swipe away. Otherwise show it all.
+   */
+  private homeView(region: RegionDef, inset: Insets, w: number, h: number) {
+    const [[x0, y0], [x1, y1]] = this.path.bounds(fitTarget(region));
+    const freeH = h - inset.top - inset.bottom;
+    const fill = (freeH * 0.92) / (y1 - y0);
+    if (fill < 1.3) return zoomIdentity;
+    const k = Math.min(fill, 2.6);
+    const cx = (x0 + x1) / 2;
+    const cy = (y0 + y1) / 2;
+    return zoomIdentity
+      .translate(w / 2, inset.top + freeH / 2)
+      .scale(k)
+      .translate(-cx, -cy);
+  }
+
   private addMarker(code: string, key: string, at: [number, number], size: number) {
     const g = el('g', { class: 'marker', 'data-key': key });
-    g.append(el('circle', { class: 'hit', r: String(this.markerR + 6) }), el('circle', { class: 'dot', r: String(this.markerR) }));
+    // Fingers need a bigger target than a cursor.
+    const reach = matchMedia('(pointer: coarse)').matches ? 13 : 6;
+    g.append(el('circle', { class: 'hit', r: String(this.markerR + reach) }), el('circle', { class: 'dot', r: String(this.markerR) }));
     this.markerLayer.append(g);
     this.markers.set(code, { el: g, at, size });
   }
