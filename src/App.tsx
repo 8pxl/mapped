@@ -15,6 +15,16 @@ export function App() {
     return () => window.removeEventListener('popstate', applyRoute);
   }, []);
 
+  // A sideways two-finger swipe would navigate back. Nothing here scrolls sideways, so swallow it everywhere;
+  // the map listens on its own element first and still pans. overscroll-behavior covers Chrome, this covers Safari.
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) e.preventDefault();
+    };
+    document.addEventListener('wheel', onWheel, { passive: false });
+    return () => document.removeEventListener('wheel', onWheel);
+  }, []);
+
   useEffect(() => {
     document.title = title;
   }, [title]);
