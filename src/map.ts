@@ -362,6 +362,8 @@ export class MapView {
   private homeView(region: RegionDef, inset: Insets, w: number, h: number) {
     const [[x0, y0], [x1, y1]] = this.path.bounds(fitTarget(region));
     const freeH = h - inset.top - inset.bottom;
+    // Only on tall screens: a wide, short map (like a mix spanning the Pacific) on a desktop must stay whole.
+    if (freeH <= w - inset.left - inset.right) return zoomIdentity;
     const fill = (freeH * 0.92) / (y1 - y0);
     if (fill < 1.3) return zoomIdentity;
     const k = Math.min(fill, 2.6);
