@@ -321,7 +321,7 @@ export class MapView {
       const at = this.centroids.get(c.code);
       if (at) sites.push({ at, code: c.code, box: padBox([at], pad) });
     }
-    for (const [code, zone] of islandZones(sites, w, h)) {
+    for (const [code, zone] of islandZones(sites, w, h, sphereOutline(this.path))) {
       const p = el<SVGPathElement>('path', { class: 'zone', d: zonePath(zone), 'data-key': code });
       this.zoneLayer.append(p);
       this.zones.set(code, p);
@@ -543,6 +543,19 @@ function el<T extends SVGElement = SVGGElement>(tag: string, attrs: Record<strin
   const e = document.createElementNS(SVG_NS, tag) as T;
   for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
   return e;
+}
+
+/** The projected outline of the globe as one ring, for trimming shapes to the map's edge. */
+function sphereOutline(path: GeoPath): [number, number][] | undefined {
+  const ring: [number, number][] = [];
+  const collect = {
+    moveTo: (x: number, y: number) => ring.push([x, y]),
+    lineTo: (x: number, y: number) => ring.push([x, y]),
+    closePath: () => {},
+    arc: () => {},
+  };
+  geoPath(path.projection(), collect as never)({ type: 'Sphere' });
+  return ring.length > 2 ? ring : undefined;
 }
 
 const COMPASS = ['east', 'northeast', 'north', 'northwest', 'west', 'southwest', 'south', 'southeast'];

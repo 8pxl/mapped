@@ -20,7 +20,7 @@ export interface Site {
  * points' cells, each kept inside a padded box around its own island, so zones hug their archipelagos and never
  * overlap each other or reach past the halfway line to a neighbour's coast.
  */
-export function islandZones(sites: Site[], width: number, height: number) {
+export function islandZones(sites: Site[], width: number, height: number, outline?: Point[]) {
   const zones = new Map<string, Point[][][]>();
   if (sites.length < 2) return zones;
   const voronoi = Delaunay.from(sites.map((s) => s.at)).voronoi([-width, -height, width * 2, height * 2]);
@@ -35,7 +35,10 @@ export function islandZones(sites: Site[], width: number, height: number) {
   });
   for (const [code, cells] of cellsByCode) {
     const [first, ...rest] = cells;
-    zones.set(code, polygonClipping.union(first, ...rest) as Point[][][]);
+    let zone = polygonClipping.union(first, ...rest);
+    // Keep zones on the globe: never past the map's outer edge.
+    if (outline) zone = polygonClipping.intersection(zone, [outline]);
+    if (zone.length) zones.set(code, zone as Point[][][]);
   }
   return zones;
 }
