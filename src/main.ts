@@ -1,6 +1,3 @@
-import '@fontsource-variable/inter';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/700.css';
 import './style.css';
 import { isMuted, setMuted, sfx } from './audio';
 import { COLOUR_OF, countriesIn, type Country, type Shape } from './data';
@@ -16,6 +13,7 @@ const prefs = {
 };
 
 
+// Storage keys keep the original "pinpoint:" prefix so saved settings and best scores survive the rename.
 function readPref(key: string) {
   try {
     return localStorage.getItem(`pinpoint:${key}`) ?? '';
@@ -143,6 +141,7 @@ function start(region: RegionId, pool: Country[], full: boolean) {
   ranked = full && !prefs.hints;
   menu.hidden = true;
   play.hidden = false;
+  document.title = `${regionById(region).name} · mapped!`;
   play.dataset.mode = prefs.mode;
   const def = regionById(region);
   play.style.setProperty('--line', def.color);
@@ -391,6 +390,7 @@ function toMenu() {
   play.hidden = true;
   menu.hidden = false;
   $('#show-results').hidden = true;
+  document.title = 'mapped!';
   renderMenu();
 }
 

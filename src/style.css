@@ -29,8 +29,9 @@
 
   --line: #f4f4f0;
 
-  --f-sans: 'Inter Variable', 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  --f-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* Helvetica, as on NYC subway signage. Built into Apple devices; Arial (drawn to Helvetica's metrics) elsewhere. */
+  --f-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --f-mono: var(--f-sans);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
   color-scheme: dark;
@@ -214,11 +215,10 @@ kbd {
 
 .wordmark {
   margin: 0;
-  font-weight: 900;
-  font-size: clamp(56px, 12vw, 132px);
-  line-height: 0.88;
-  letter-spacing: -0.055em;
-  text-transform: uppercase;
+  font-weight: 700;
+  font-size: clamp(64px, 14vw, 150px);
+  line-height: 0.85;
+  letter-spacing: -0.045em;
 }
 
 .subtitle {
