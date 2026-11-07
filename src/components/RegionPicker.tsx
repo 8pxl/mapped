@@ -227,11 +227,15 @@ export function RegionPicker({
     onToggle(id, animate);
   };
 
-  /** Hover handlers shared by a continent's outline and its label. Touch has no hover. */
-  const hoverProps = (id: ContinentId) => ({
-    onPointerEnter: (e: React.PointerEvent) => e.pointerType !== 'touch' && setHovered(id),
-    onPointerLeave: () => setHovered((h) => (h === id ? null : h)),
-  });
+  /**
+   * One hover for the whole map, read from whatever is under the pointer: moving between a continent and its label
+   * never passes through "nothing hovered", so neither flickers. Touch has no hover.
+   */
+  const onPointerOver = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return;
+    const id = ((e.target as Element).closest('[data-region]')?.getAttribute('data-region') ?? null) as ContinentId | null;
+    setHovered(id);
+  };
 
   const blockProps = (b: BlockGeo, i: number) => ({
     'data-region': b.id,
@@ -244,7 +248,12 @@ export function RegionPicker({
   // Three layers, so no continent's outline paints over a neighbour's along a shared border (the Urals, Panama):
   // the dim outlines, then the hover outline, then the coloured outlines of selected continents.
   return (
-    <div className={`picker-map${intro.current ? ' intro' : ''}`} style={{ aspectRatio: `${view.w} / ${view.h}` }}>
+    <div
+      className={`picker-map${intro.current ? ' intro' : ''}`}
+      style={{ aspectRatio: `${view.w} / ${view.h}` }}
+      onPointerOver={onPointerOver}
+      onPointerLeave={() => setHovered(null)}
+    >
       <svg viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`} aria-hidden="true">
         <defs>
           <radialGradient id="pour-soft">
@@ -275,7 +284,7 @@ export function RegionPicker({
         <g ref={zoomLayer} className="picker-zoom">
           <path className="picker-other" d={other} />
           {blocks.map((b, i) => (
-            <path key={b.id} className="block" {...blockProps(b, i)} onClick={(e) => toggleAt(b.id, e)} {...hoverProps(b.id)} />
+            <path key={b.id} className="block" {...blockProps(b, i)} onClick={(e) => toggleAt(b.id, e)} />
           ))}
           {blocks.map((b, i) => (
             <path key={b.id} className="block-hover" {...blockProps(b, i)} />
@@ -302,8 +311,8 @@ export function RegionPicker({
           aria-pressed={selection.includes(b.id)}
           data-hover={hovered === b.id || undefined}
           style={{ left: `${((b.label[0] - view.x) / view.w) * 100}%`, top: `${((b.label[1] - view.y) / view.h) * 100}%`, '--line': b.def.color, '--i': i } as React.CSSProperties}
+          data-region={b.id}
           onClick={(e) => toggleAt(b.id, e)}
-          {...hoverProps(b.id)}
         >
           <Badge region={b.def} />
           <span>{b.def.name}</span>
