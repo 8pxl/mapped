@@ -1,58 +1,60 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { sfx } from '../audio';
-import { countriesIn } from '../data';
-import { formatTime, loadBest } from '../game';
-import { thumbnail } from '../map';
-import { REGIONS, regionById, type RegionDef, type RegionId } from '../regions';
+import { countriesFor } from '../data';
+import { formatTime, loadBest, type Mode } from '../game';
+import { CONTINENTS, selectionDef, type ContinentId } from '../regions';
 import { useStore } from '../store';
+import { RegionPicker, type PickerHandle } from './RegionPicker';
 import { Settings } from './Settings';
-import { Badge, MODES, modeTitle } from './shared';
+import { Badge, MODES } from './shared';
 
-const thumbs = new Map<RegionId, string>();
-const thumbFor = (r: RegionDef) => {
-  if (!thumbs.has(r.id)) thumbs.set(r.id, thumbnail(r, new Set(countriesIn(r.id).map((c) => c.code)), 560, 320));
-  return thumbs.get(r.id)!;
-};
-
-const pct = (n: number) => `${Math.round(n * 100)}%`;
+const ALL = CONTINENTS.map((c) => c.id as ContinentId);
 
 export function Menu() {
   const mode = useStore((s) => s.mode);
-  const region = useStore((s) => s.region);
+  const selection = useStore((s) => s.selection);
   const setMode = useStore((s) => s.setMode);
-  const setRegion = useStore((s) => s.setRegion);
+  const setSelection = useStore((s) => s.setSelection);
   const startSelected = useStore((s) => s.startSelected);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const rowRefs = useRef(new Map<RegionId, HTMLButtonElement>());
+  const [leaving, setLeaving] = useState(false);
+  const picker = useRef<PickerHandle>(null);
 
-  const selected = regionById(region);
-  const best = loadBest(mode, region);
-  const groups = useMemo(() => [...new Set(REGIONS.map((r) => r.group))], []);
+  const def = selectionDef(selection);
+  const count = def ? countriesFor(def).length : 0;
+  const best = def ? loadBest(mode, def.id) : null;
+  const allPicked = selection.length === ALL.length;
 
-  // Arrow keys move through regions and Enter starts, on the menu only.
+  const toggle = (id: ContinentId) => {
+    const next = selection.includes(id) ? selection.filter((x) => x !== id) : [...selection, id];
+    setSelection(next);
+    sfx.click();
+  };
+
+  /** From a pointer: zoom into the selection, then start. From the keyboard: start at once, no animation. */
+  const mapIt = async (fromPointer: boolean) => {
+    if (!def || leaving) return;
+    if (fromPointer) {
+      setLeaving(true);
+      await picker.current?.zoomToSelection();
+    }
+    startSelected();
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (settingsOpen || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (e.key === 'Enter' && !(e.target as HTMLElement).closest('button')) {
         e.preventDefault();
-        const i = REGIONS.findIndex((r) => r.id === useStore.getState().region);
-        const next = REGIONS[(i + (e.key === 'ArrowDown' ? 1 : -1) + REGIONS.length) % REGIONS.length];
-        setRegion(next.id);
-        // Focus follows the selection, so Enter starts it rather than pressing whatever button had focus.
-        rowRefs.current.get(next.id)?.focus();
-      }
-      const onButton = (e.target as HTMLElement).closest('button');
-      if (e.key === 'Enter' && (!onButton || onButton.matches('.region-row'))) {
-        e.preventDefault();
-        startSelected();
+        mapIt(false);
       }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [settingsOpen, setRegion, startSelected]);
+  });
 
   return (
-    <main id="menu" className="screen">
+    <main id="menu" className={`screen${leaving ? ' leaving' : ''}`}>
       <div className="menu-wrap">
         <header className="topbar">
           <a className="brand" href="/" aria-label="mapped! home">
@@ -72,123 +74,112 @@ export function Menu() {
           </button>
         </header>
 
-        <div className="menu-grid">
-          <div className="picker">
-            <section className="pick-section" aria-labelledby="game-label">
-              <h2 className="eyebrow" id="game-label">
-                Game
-              </h2>
-              <div className="mode-tabs" role="radiogroup" aria-labelledby="game-label">
-                {MODES.map((m) => (
-                  <button
-                    key={m.id}
-                    className="mode-tab"
-                    data-mode={m.id}
-                    role="radio"
-                    aria-checked={m.id === mode}
-                    onClick={() => {
-                      if (m.id === mode) return;
-                      setMode(m.id);
-                      sfx.click();
-                    }}
-                  >
-                    <span className={`route route-${m.id}`}>{m.code}</span>
-                    <span>{m.title}</span>
-                  </button>
-                ))}
-              </div>
-              <p className="mode-desc">{MODES.find((m) => m.id === mode)!.blurb}</p>
-            </section>
+        <section className="menu-section game-section" aria-labelledby="game-label">
+          <h2 className="eyebrow" id="game-label">
+            <span className="step-num">1</span> Game
+          </h2>
+          <ModeTabs
+            mode={mode}
+            onChange={(m) => {
+              setMode(m);
+              sfx.click();
+            }}
+          />
+          <p className="mode-desc">{MODES.find((m) => m.id === mode)!.blurb}</p>
+        </section>
 
-            <section className="pick-section" aria-labelledby="region-label">
-              <div className="region-cols">
-                <h2 className="eyebrow" id="region-label">
-                  Region
-                </h2>
-                <span aria-hidden="true">Countries</span>
-                <span aria-hidden="true">Best</span>
-              </div>
-              <div className="region-list">
-                {groups.map((group) => (
-                  <div className="region-group" key={group}>
-                    <h3>{group}</h3>
-                    <ul>
-                      {REGIONS.filter((r) => r.group === group).map((r) => {
-                        const rowBest = loadBest(mode, r.id);
-                        return (
-                          <li key={r.id}>
-                            <button
-                              ref={(el) => {
-                                if (el) rowRefs.current.set(r.id, el);
-                              }}
-                              className="region-row"
-                              data-region={r.id}
-                              aria-pressed={r.id === region}
-                              style={{ '--line': r.color } as React.CSSProperties}
-                              onClick={() => setRegion(r.id)}
-                              onDoubleClick={startSelected}
-                            >
-                              <Badge region={r} />
-                              <span className="row-name">
-                                {r.name}
-                                <small>{r.tagline}</small>
-                              </span>
-                              <span className="row-count">{countriesIn(r.id).length}</span>
-                              <span className="row-best">{rowBest ? pct(rowBest.score) : '—'}</span>
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </section>
+        <section className="menu-section region-section" aria-labelledby="region-label">
+          <div className="section-head">
+            <h2 className="eyebrow" id="region-label">
+              <span className="step-num">2</span> Regions
+            </h2>
+            <button className="btn-ghost select-all" onClick={() => setSelection(allPicked ? [] : ALL)}>
+              {allPicked ? 'Clear all' : 'Select all'}
+            </button>
           </div>
+          <RegionPicker ref={picker} selection={selection} onToggle={toggle} />
+        </section>
 
-          <aside className="preview" aria-live="polite">
-            <div className="preview-map" dangerouslySetInnerHTML={{ __html: thumbFor(selected) }} />
-            <div className="preview-body">
-              <div className="preview-head">
-                <Badge region={selected} />
-                <h2>{selected.name}</h2>
-              </div>
-              <p className="preview-tag">{selected.tagline}</p>
-              <dl className="preview-stats">
-                <div>
-                  <dt>Countries</dt>
-                  <dd>{countriesIn(region).length}</dd>
-                </div>
-                <div>
-                  <dt>Best</dt>
-                  <dd>{best ? pct(best.score) : '—'}</dd>
-                </div>
-                <div>
-                  <dt>Best time</dt>
-                  <dd>{best ? formatTime(best.time) : '—'}</dd>
-                </div>
-              </dl>
-              <button className="btn start-btn" onClick={startSelected}>
-                Start <span>{modeTitle(mode)}</span>
-                <kbd>Enter</kbd>
-              </button>
-            </div>
-          </aside>
+        <div className="cta">
+          <p className="cta-summary" aria-live="polite">
+            {def ? (
+              <>
+                <Badge region={def} />
+                <b>{def.name}</b>
+                <span>{count} countries</span>
+                {best && (
+                  <span>
+                    Best {Math.round(best.score * 100)}% · {formatTime(best.time)}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span>Pick one or more regions on the map</span>
+            )}
+          </p>
+          <button className="btn map-it" disabled={!def} onClick={(e) => mapIt(e.detail > 0)}>
+            map it!
+          </button>
         </div>
-      </div>
-      <div className="start-bar">
-        <span className="start-bar-label">
-          <Badge region={selected} />
-          <span>
-            <b>{selected.name}</b>
-            <small>{modeTitle(mode)}</small>
-          </span>
-        </span>
-        <button className="btn" onClick={startSelected}>
-          Start
-        </button>
       </div>
       <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </main>
+  );
+}
+
+/**
+ * Game tabs. The active look is a second copy of the tabs, clipped to the selected one; the clip slides on change,
+ * so the highlight's colour and position move as one (see the tab-indicator recipe).
+ */
+function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
+  const row = useRef<HTMLDivElement>(null);
+  const tabs = useRef(new Map<Mode, HTMLButtonElement>());
+  const [clip, setClip] = useState('inset(0 100% 0 0 round 12px)');
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const tab = tabs.current.get(mode);
+      const box = row.current;
+      if (!tab || !box) return;
+      const left = tab.offsetLeft;
+      const right = box.scrollWidth - left - tab.offsetWidth;
+      setClip(`inset(0 ${right}px 0 ${left}px round 12px)`);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(row.current!);
+    return () => ro.disconnect();
+  }, [mode]);
+
+  const render = (active: boolean) =>
+    MODES.map((m) => (
+      <button
+        key={m.id}
+        ref={
+          active
+            ? undefined
+            : (el) => {
+                if (el) tabs.current.set(m.id, el);
+              }
+        }
+        className="mode-tab"
+        data-mode={active ? undefined : m.id}
+        role={active ? undefined : 'radio'}
+        aria-checked={active ? undefined : m.id === mode}
+        tabIndex={active ? -1 : undefined}
+        onClick={active ? undefined : () => m.id !== mode && onChange(m.id)}
+      >
+        <span className={`route route-${m.id}`}>{m.code}</span>
+        <span>{m.title}</span>
+      </button>
+    ));
+
+  return (
+    <div className="mode-tabs" ref={row} role="radiogroup" aria-labelledby="game-label">
+      {render(false)}
+      <div className="mode-tabs-active" aria-hidden="true" style={{ clipPath: clip }}>
+        {render(true)}
+      </div>
+    </div>
   );
 }

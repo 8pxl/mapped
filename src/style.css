@@ -34,6 +34,7 @@
   --f-mono: var(--f-sans);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   color-scheme: dark;
 }
 
@@ -172,7 +173,7 @@ kbd {
 }
 
 /* ---------- Menu ----------
-   Hierarchy: brand and settings (top bar) → game → region → preview and Start (the primary action). */
+   A vertical stack: brand and settings → 1 game → 2 regions (a map you pick on) → summary and "map it!". */
 
 .menu-wrap {
   width: min(1120px, 100%);
@@ -217,18 +218,15 @@ kbd {
 .brand-lines i:nth-child(3) { width: 70%; }
 .brand-lines i:nth-child(4) { width: 55%; }
 
-.menu-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
-  gap: 40px;
-  padding-top: 32px;
-  align-items: start;
+.menu-section {
+  padding-top: 36px;
 }
 
-.eyebrow,
-.region-group h3,
-.region-cols {
-  margin: 0;
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -236,20 +234,36 @@ kbd {
   color: var(--mute);
 }
 
-.eyebrow {
-  margin-bottom: 12px;
+.step-num {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  font-size: 11px;
+  letter-spacing: 0;
+  color: #000;
+  background: var(--white);
 }
 
-.pick-section + .pick-section {
-  margin-top: 36px;
-}
-
-/* Game tabs: a row that scrolls sideways once there are more games than fit. */
+/* Game tabs. The highlighted look is a clipped copy of the row; the clip slides between tabs. */
 .mode-tabs {
+  position: relative;
   display: flex;
   gap: 8px;
+  width: fit-content;
+  max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
+}
+
+.mode-tabs-active {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+  transition: clip-path 250ms var(--ease-in-out);
 }
 
 .mode-tab {
@@ -265,14 +279,9 @@ kbd {
   border: 0;
   border-radius: 12px;
   box-shadow: inset 0 0 0 1px var(--rule-2);
-  transition: background 0.15s, color 0.15s, transform 0.12s var(--ease-out);
 }
 
-.mode-tab:active {
-  transform: scale(0.97);
-}
-
-.mode-tab[aria-checked='true'] {
+.mode-tabs-active .mode-tab {
   color: #000;
   background: var(--white);
   box-shadow: none;
@@ -293,217 +302,236 @@ kbd {
   color: var(--mute);
 }
 
-/* Region directory: grouped rows, like a line list on a transit map. */
-.region-cols,
-.region-row {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 76px 52px;
+.section-head {
+  display: flex;
   align-items: center;
-  column-gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
-.region-cols {
-  padding: 0 12px 12px 0;
-}
-
-.region-cols .eyebrow {
-  grid-column: 1 / 3;
+.section-head .eyebrow {
   margin: 0;
 }
 
-.region-cols span {
-  text-align: right;
-  color: var(--mute-2);
-}
+/* ---------- Region picker map ---------- */
 
-.region-group + .region-group {
-  margin-top: 20px;
-}
-
-.region-group h3 {
-  padding: 0 12px 8px;
-  color: var(--mute-2);
-}
-
-.region-group ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--rule);
-}
-
-.region-row {
+.picker-map {
+  position: relative;
   width: 100%;
-  padding: 12px;
-  text-align: left;
-  background: none;
-  border: 0;
-  border-bottom: 1px solid var(--rule);
-  transition: background 0.12s;
+  aspect-ratio: 1000 / 452;
 }
 
-.region-row .badge {
-  width: 28px;
-  height: 28px;
+.picker-map svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.picker-sea {
+  fill: url(#picker-dots);
+  stroke: var(--rule-2);
+  stroke-width: 1;
+}
+
+.picker-graticule {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0.5;
+  opacity: 0.07;
+}
+
+.picker-other {
+  fill: #121214;
+  stroke: #ffffff26;
+  stroke-width: 0.5;
+}
+
+.block {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 160ms var(--ease-out);
+}
+
+.block:active {
+  transform: scale(0.985);
+}
+
+.block-base {
+  fill: color-mix(in srgb, var(--line) 12%, #161618);
+  transition: fill 150ms ease;
+}
+
+.block-fill {
+  fill: var(--line);
+}
+
+.block-edge {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  pointer-events: none;
+  transition: stroke 150ms ease;
+}
+
+.block[aria-pressed='true'] .block-edge {
+  stroke: color-mix(in srgb, var(--line) 55%, white);
+}
+
+/* Region labels double as the accessible toggles, and as big targets for small regions. */
+.region-pill {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  font-weight: 700;
   font-size: 13px;
+  white-space: nowrap;
+  color: var(--white);
+  background: #000000cc;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--rule-2);
+  transform: translate(-50%, -50%);
+  transition: background 150ms ease, color 150ms ease, transform 160ms var(--ease-out);
+}
+
+.region-pill .badge {
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
   box-shadow: none;
 }
 
-.region-row .badge.light {
-  box-shadow: inset 0 0 0 1px #00000020;
+.region-pill[aria-pressed='true'] {
+  color: #000;
+  background: var(--white);
+  box-shadow: none;
 }
 
-.row-name {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.row-name small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 400;
-  font-size: 13px;
-  color: var(--mute);
-}
-
-.row-count,
-.row-best {
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: var(--mute);
-}
-
-.row-best {
-  font-weight: 700;
-  color: var(--white);
-}
-
-.region-row[aria-pressed='true'] {
-  background: var(--panel-2);
-  box-shadow: inset 3px 0 0 var(--line);
+.region-pill:active {
+  transform: translate(-50%, -50%) scale(0.96);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .region-row:hover {
-    background: var(--panel);
+  .block:hover .block-base {
+    fill: color-mix(in srgb, var(--line) 30%, #161618);
   }
 
-  .region-row[aria-pressed='true']:hover {
-    background: var(--panel-2);
+  .region-pill:hover {
+    background: #1c1c1e;
+  }
+
+  .region-pill[aria-pressed='true']:hover {
+    background: #e6e6e6;
   }
 }
 
-/* Preview: the selected region, big, with the Start button. */
-.preview {
-  position: sticky;
-  top: 24px;
-  overflow: hidden;
-  background: var(--panel);
-  border: 1px solid var(--rule);
-  border-radius: 20px;
+/* First visit only: blocks and labels settle in with a short stagger. */
+.picker-map.intro .block {
+  animation: block-in 420ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i) * 50ms + 60ms);
 }
 
-.preview-map {
-  display: block;
-  background-color: #000;
-  background-image: radial-gradient(circle at 3px 3px, #ffffff2b 0.8px, transparent 0);
-  background-size: 7px 7px;
-  border-bottom: 1px solid var(--rule);
+.picker-map.intro .region-pill {
+  animation: pill-in 300ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i) * 50ms + 280ms);
 }
 
-.preview-body {
-  padding: 24px 28px 28px;
+@keyframes block-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
 }
 
-.preview-head {
+@keyframes pill-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(6px);
+  }
+}
+
+/* ---------- Call to action ---------- */
+
+.cta {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+  padding: 28px 0 8px;
 }
 
-.preview-head .badge {
-  width: 36px;
-  height: 36px;
-  font-size: 17px;
-}
-
-.preview-head h2 {
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(30px, 3.6vw, 44px);
-  line-height: 1;
-  letter-spacing: -0.035em;
-}
-
-.preview-tag {
-  margin: 10px 0 0;
-  font-size: 15px;
-  color: var(--mute);
-}
-
-.preview-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin: 24px 0 0;
-  border-block: 1px solid var(--rule);
-}
-
-.preview-stats div {
-  padding: 14px 0;
-}
-
-.preview-stats div + div {
-  padding-left: 16px;
-  border-left: 1px solid var(--rule);
-}
-
-.preview-stats dt {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--mute);
-}
-
-.preview-stats dd {
-  margin: 8px 0 0;
-  font-weight: 700;
-  font-size: 24px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.start-btn {
-  position: relative;
+.cta-summary {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  width: 100%;
-  height: 56px;
-  margin-top: 24px;
+  gap: 6px 12px;
+  min-height: 24px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--mute);
+}
+
+.cta-summary b {
   font-size: 15px;
+  color: var(--white);
 }
 
-.start-btn span {
-  font-weight: 500;
-  opacity: 0.5;
+.cta-summary .badge {
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  box-shadow: none;
 }
 
-.start-btn kbd {
-  position: absolute;
-  right: 16px;
-  color: #000;
+.map-it {
+  height: 60px;
+  padding: 0 64px;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  border-radius: 999px;
+  transition: transform 160ms var(--ease-out), opacity 200ms var(--ease-out), background 150ms ease;
 }
 
-.start-bar {
-  display: none;
+.map-it:active {
+  transform: scale(0.97);
+}
+
+.map-it:disabled {
+  opacity: 0.25;
+  cursor: default;
+  transform: none;
+}
+
+/* Leaving for a round: everything but the map fades while the map zooms into the selection. */
+#menu.leaving {
+  pointer-events: none;
+}
+
+#menu.leaving :is(.topbar, .game-section, .section-head, .cta, .region-pill) {
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+}
+
+#menu .picker-map {
+  overflow: hidden;
+}
+
+#play {
+  animation: play-in 220ms var(--ease-out);
+}
+
+@keyframes play-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .route {
@@ -527,28 +555,6 @@ kbd {
 
 .route-flag {
   background: #1f9d55;
-}
-
-.thumb {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.thumb-sea {
-  fill: none;
-}
-
-.thumb .on {
-  fill: var(--c);
-  stroke: #000;
-  stroke-width: 0.6;
-}
-
-.thumb .off {
-  fill: #000;
-  stroke: #ffffff38;
-  stroke-width: 0.5;
 }
 
 /* ---------- Settings ---------- */
@@ -1952,11 +1958,6 @@ kbd {
 /* ---------- Small screens ---------- */
 
 @media (max-width: 900px) {
-  .menu-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 28px;
-  }
-
   .legend {
     display: none;
   }
@@ -2063,62 +2064,39 @@ kbd {
     font-size: 24px;
   }
 
-  .menu-wrap {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  .menu-section {
+    padding-top: 24px;
   }
 
-  .menu-grid {
-    grid-template-columns: 1fr;
-    gap: 0;
-    padding-top: 20px;
+  /* Small map: labels shrink to their numbered badges so they don't collide. */
+  .region-pill {
+    padding: 3px;
   }
 
-  .preview {
+  .region-pill > span:not(.badge) {
     display: none;
   }
 
-  /* Phones: Start sits in a bar pinned to the bottom, always in thumb reach. */
-  .start-bar {
-    position: fixed;
-    z-index: 40;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-    background: #000000e6;
-    backdrop-filter: blur(12px);
-    border-top: 1px solid var(--rule);
-  }
-
-  .start-bar-label {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-  }
-
-  .start-bar-label > span {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .start-bar-label b {
-    font-size: 16px;
-  }
-
-  .start-bar-label small {
+  .region-pill .badge {
+    width: 26px;
+    height: 26px;
     font-size: 12px;
-    color: var(--mute);
   }
 
-  .start-bar .btn {
-    height: 48px;
-    padding: 0 30px;
+  /* "map it!" stays in thumb reach, centred in a bar at the bottom. */
+  .cta {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    gap: 10px;
+    margin: 0 calc(-1 * clamp(16px, 4vw, 40px));
+    padding: 28px 16px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(transparent, #000 32%);
+  }
+
+  .map-it {
+    width: min(100%, 340px);
+    height: 54px;
   }
 
   .res-score {

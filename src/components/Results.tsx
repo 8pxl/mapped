@@ -1,5 +1,5 @@
 import { sfx } from '../audio';
-import { COLOUR_OF, countriesIn, type Country } from '../data';
+import { COLOUR_OF, countriesFor, type Country } from '../data';
 import { formatTime, type Outcome } from '../game';
 import { useStore } from '../store';
 import { Badge, Dialog, modeTitle, RANKS } from './shared';
@@ -88,11 +88,11 @@ export function Results() {
         </div>
         <footer className={`res-actions${slips.length ? '' : ' no-retry'}`}>
           {slips.length > 0 && (
-            <button className="btn res-primary" data-act="retry" onClick={act(() => start(g.region, g.missed, false))}>
+            <button className="btn res-primary" data-act="retry" onClick={act(() => start(def, g.missed, false))}>
               Retry {slips.length} to review
             </button>
           )}
-          <button className={`btn${slips.length ? ' alt' : ''}`} data-act="again" onClick={act(() => start(g.region, countriesIn(g.region), true))}>
+          <button className={`btn${slips.length ? ' alt' : ''}`} data-act="again" onClick={act(() => start(def, countriesFor(def), true))}>
             Play again
           </button>
           <button className="btn alt" data-act="map" onClick={act(() => setResultsOpen(false))}>

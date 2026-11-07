@@ -3,8 +3,8 @@ import { select, type Selection } from 'd3-selection';
 import 'd3-transition';
 import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zoom';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
-import { COLOUR_OF, ISLANDS, LAND, PALETTE, SHAPES, SHAPES_LOW, type Country, type Shape } from './data';
-import { fitTarget, fittedProjection, type RegionDef } from './regions';
+import { COLOUR_OF, ISLANDS, LAND, PALETTE, SHAPES, type Country, type Shape } from './data';
+import { fitTarget, type RegionDef } from './regions';
 import { islandZones, zonePath, type Site } from './zones';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -652,14 +652,3 @@ const defs = () => `<defs>
   </pattern>`,
   ).join('')}
 </defs>`;
-
-/** A small static map of a region for the menu cards. */
-export function thumbnail(region: RegionDef, active: Set<string>, w: number, h: number) {
-  const path = geoPath(fittedProjection(region, w, h, 4));
-  const parts = SHAPES_LOW.map((s) => {
-    const d = s.feature.geometry ? path(s.feature) : null;
-    if (!d) return '';
-    return s.code && active.has(s.code) ? `<path d="${d}" class="on" style="--c: ${colourOf(s.code)}"/>` : `<path d="${d}" class="off"/>`;
-  });
-  return `<svg class="thumb" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path class="thumb-sea" d="${path({ type: 'Sphere' })}"/>${parts.join('')}</svg>`;
-}

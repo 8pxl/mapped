@@ -1,5 +1,4 @@
 import type { Country } from './data';
-import type { RegionId } from './regions';
 
 export type Mode = 'name' | 'flag';
 export const MAX_ATTEMPTS = 3;
@@ -26,7 +25,8 @@ export class Game {
 
   constructor(
     readonly mode: Mode,
-    readonly region: RegionId,
+    /** Region key (see RegionDef.id), used for best scores. */
+    readonly region: string,
     readonly pool: Country[],
   ) {
     this.queue = shuffle([...pool]);
@@ -110,9 +110,9 @@ export interface Best {
   time: number;
 }
 
-const bestKey = (mode: Mode, region: RegionId) => `pinpoint:best:${mode}:${region}`;
+const bestKey = (mode: Mode, region: string) => `pinpoint:best:${mode}:${region}`;
 
-export function loadBest(mode: Mode, region: RegionId): Best | null {
+export function loadBest(mode: Mode, region: string): Best | null {
   try {
     return JSON.parse(localStorage.getItem(bestKey(mode, region)) ?? 'null');
   } catch {
@@ -121,7 +121,7 @@ export function loadBest(mode: Mode, region: RegionId): Best | null {
 }
 
 /** Saves the run if it beats the stored best (higher score, then faster time). Returns true on a new record. */
-export function saveBest(mode: Mode, region: RegionId, run: Best) {
+export function saveBest(mode: Mode, region: string, run: Best) {
   const prev = loadBest(mode, region);
   if (prev && (prev.score > run.score || (prev.score === run.score && prev.time <= run.time))) return false;
   try {

@@ -4,7 +4,7 @@ import { feature, merge, neighbors } from 'topojson-client';
 import atlas50 from 'world-atlas/countries-50m.json';
 import atlas110 from 'world-atlas/countries-110m.json';
 import meta from './data/countries.json';
-import type { RegionId } from './regions';
+import type { RegionDef, RegionId } from './regions';
 
 export interface Country {
   code: string;
@@ -133,5 +133,5 @@ export const LAND = feature(atlas50 as unknown as CountriesTopology, (atlas50 as
 /** Coarser shapes for small thumbnails. */
 export const SHAPES_LOW = buildShapes(atlas110 as unknown as CountriesTopology);
 
-export const countriesIn = (region: RegionId) =>
-  region === 'world' ? COUNTRIES : COUNTRIES.filter((c) => c.regions.includes(region));
+/** Every country in a region, or in a mix of continents, without duplicates (Russia and Türkiye sit in two). */
+export const countriesFor = (region: RegionDef) => COUNTRIES.filter((c) => c.regions.some((r) => (region.members as string[]).includes(r)));

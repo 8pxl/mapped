@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { create } from 'zustand';
 import { isMuted, setMuted, sfx } from './audio';
-import { countriesIn, type Country } from './data';
+import { countriesFor, type Country } from './data';
 import { Game, saveBest, type Mode, type Outcome } from './game';
 import type { MapView, Paint, PickEvent } from './map';
 import { readPref, writePref } from './prefs';
-import { REGIONS, regionById, type RegionDef, type RegionId } from './regions';
+import { CONTINENTS, isContinent, parseRegionKey, selectionDef, type ContinentId, type RegionDef } from './regions';
 
 export const PAINT_FOR: Record<Outcome, Paint> = { 0: 'missed', 1: 'c1', 2: 'c2', 3: 'c3' };
 
@@ -33,7 +33,8 @@ export interface Session {
 interface State {
   mode: Mode;
   hints: boolean;
-  region: RegionId;
+  /** Continents picked on the menu. */
+  selection: ContinentId[];
   muted: boolean;
   screen: 'menu' | 'play';
   session: Session | null;
@@ -44,9 +45,9 @@ interface State {
 
   setMode: (mode: Mode) => void;
   setHints: (on: boolean) => void;
-  setRegion: (id: RegionId) => void;
+  setSelection: (ids: ContinentId[]) => void;
   toggleMuted: () => void;
-  start: (region: RegionId, pool: Country[], full: boolean) => void;
+  start: (def: RegionDef, pool: Country[], full: boolean) => void;
   startSelected: () => void;
   goMenu: () => void;
   applyRoute: () => void;
@@ -66,9 +67,18 @@ export const getMap = () => map;
 let toastTimer = 0;
 let toastId = 0;
 
-const isRegion = (id: string): id is RegionId => REGIONS.some((r) => r.id === id);
+export const routeUrl = (region: RegionDef, mode: Mode) => `/${region.id}${mode === 'flag' ? '?mode=flag' : ''}`;
 
-export const routeUrl = (region: RegionId, mode: Mode) => `/${region}${mode === 'flag' ? '?mode=flag' : ''}`;
+const ALL = CONTINENTS.map((c) => c.id as ContinentId);
+
+/** The saved selection, carrying over the single region the earlier menu remembered. */
+function savedSelection(): ContinentId[] {
+  const saved = readPref('selection');
+  if (saved) return saved.split(',').filter(isContinent);
+  const old = readPref('region');
+  if (old === 'world') return ALL;
+  return isContinent(old) ? [old] : [];
+}
 
 export const useStore = create<State>()((set, get) => {
   const bump = () => set((s) => ({ tick: s.tick + 1 }));
@@ -98,7 +108,7 @@ export const useStore = create<State>()((set, get) => {
   return {
     mode: (readPref('mode') as Mode) || 'name',
     hints: readPref('hints') === '1',
-    region: (isRegion(readPref('region')) ? readPref('region') : 'world') as RegionId,
+    selection: savedSelection(),
     muted: isMuted(),
     screen: 'menu',
     session: null,
@@ -114,25 +124,25 @@ export const useStore = create<State>()((set, get) => {
       writePref('hints', hints ? '1' : '0');
       set({ hints });
     },
-    setRegion: (region) => {
-      writePref('region', region);
-      set({ region });
+    setSelection: (selection) => {
+      writePref('selection', selection.join(','));
+      set({ selection });
     },
     toggleMuted: () => {
       setMuted(!isMuted());
       set({ muted: isMuted() });
     },
 
-    start: (region, pool, full) => {
+    start: (def, pool, full) => {
       const { mode, hints } = get();
-      if (full) get().setRegion(region);
+      if (full) get().setSelection(def.members);
       clearTimeout(toastTimer);
       set({
         screen: 'play',
         toast: null,
         session: {
-          game: new Game(mode, region, pool),
-          def: regionById(region),
+          game: new Game(mode, def.id, pool),
+          def,
           ranked: full && !hints,
           full,
           pending: null,
@@ -144,9 +154,11 @@ export const useStore = create<State>()((set, get) => {
     },
 
     startSelected: () => {
-      const { region, mode, start } = get();
-      history.pushState({ fromMenu: true }, '', routeUrl(region, mode));
-      start(region, countriesIn(region), true);
+      const { selection, mode, start } = get();
+      const def = selectionDef(selection);
+      if (!def) return;
+      history.pushState({ fromMenu: true }, '', routeUrl(def, mode));
+      start(def, countriesFor(def), true);
     },
 
     /** Leaves a round for the menu: steps back through history when the menu is where we came from. */
@@ -158,17 +170,18 @@ export const useStore = create<State>()((set, get) => {
       }
     },
 
-    /** "/" is the menu; "/<region>" plays it, with "?mode=flag" for Flag only. */
+    /** "/" is the menu; "/<region>" plays it ("/europe+africa" for a mix), with "?mode=flag" for Flag only. */
     applyRoute: () => {
-      const id = location.pathname.replace(/^\/+|\/+$/g, '');
-      if (!isRegion(id)) {
-        if (id) history.replaceState(null, '', '/');
+      const key = decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, ''));
+      const def = key ? parseRegionKey(key) : null;
+      if (!def) {
+        if (key) history.replaceState(null, '', '/');
         toMenu();
         return;
       }
       const mode: Mode = new URLSearchParams(location.search).get('mode') === 'flag' ? 'flag' : 'name';
       if (mode !== get().mode) get().setMode(mode);
-      get().start(id, countriesIn(id), true);
+      get().start(def, countriesFor(def), true);
     },
 
     pick: ({ shape, active, at }) => {
