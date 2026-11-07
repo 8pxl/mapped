@@ -100,7 +100,10 @@ menu.addEventListener('click', (e) => {
     renderMenu();
   }
   const region = t.closest<HTMLElement>('[data-region]')?.dataset.region as RegionId | undefined;
-  if (region) start(region, countriesIn(region), true);
+  if (region) {
+    history.pushState({ fromMenu: true }, '', routeUrl(region, prefs.mode));
+    start(region, countriesIn(region), true);
+  }
 });
 
 $('#opt-hints').addEventListener('change', (e) => {
@@ -377,7 +380,7 @@ results.addEventListener('click', (e) => {
     results.close();
     $('#show-results').hidden = false;
   }
-  if (act === 'menu') toMenu();
+  if (act === 'menu') goMenu();
 });
 
 function toMenu() {
@@ -398,7 +401,7 @@ play.addEventListener('click', (e) => {
     sfx.click();
     showPrompt();
   }
-  if (t.closest('#back')) toMenu();
+  if (t.closest('#back')) goMenu();
   if (t.closest('#zoom-in')) map.zoomBy(1.8);
   if (t.closest('#zoom-out')) map.zoomBy(1 / 1.8);
   if (t.closest('#zoom-reset')) map.resetZoom();
@@ -428,12 +431,47 @@ document.addEventListener('keydown', (e) => {
   if (e.key === '+' || e.key === '=') map.zoomBy(1.8);
   if (e.key === '-') map.zoomBy(1 / 1.8);
   if (e.key === '0') map.resetZoom();
-  if (e.key === 'Escape') toMenu();
+  if (e.key === 'Escape') goMenu();
 });
 
 document.addEventListener('keyup', (e) => {
   if (e.key === ' ' && !play.hidden && !results.open) e.preventDefault();
 });
 
-renderMenu();
+// ---------- Routing ----------
+// "/" is the menu; "/<region>" plays it, with "?mode=flag" for Flag only. Browser back/forward move between them.
+
+const isRegion = (id: string): id is RegionId => REGIONS.some((r) => r.id === id);
+
+function routeUrl(region: RegionId, mode: Mode) {
+  return `/${region}${mode === 'flag' ? '?mode=flag' : ''}`;
+}
+
+function applyRoute() {
+  const id = location.pathname.replace(/^\/+|\/+$/g, '');
+  if (!isRegion(id)) {
+    if (id) history.replaceState(null, '', '/');
+    toMenu();
+    return;
+  }
+  const mode: Mode = new URLSearchParams(location.search).get('mode') === 'flag' ? 'flag' : 'name';
+  if (mode !== prefs.mode) {
+    prefs.mode = mode;
+    writePref('mode', mode);
+  }
+  start(id, countriesIn(id), true);
+}
+
+/** Leaves a round for the menu: steps back through history when the menu is where we came from. */
+function goMenu() {
+  if (history.state?.fromMenu) history.back();
+  else {
+    history.replaceState(null, '', '/');
+    toMenu();
+  }
+}
+
+window.addEventListener('popstate', applyRoute);
+
 syncSound();
+applyRoute();
