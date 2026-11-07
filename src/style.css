@@ -788,21 +788,12 @@ kbd {
   pointer-events: none;
 }
 
+/* Solid, not dotted: a dash pattern is re-cut into thousands of segments every frame while zooming. */
 .graticule {
   fill: none;
   stroke: #fff;
   stroke-width: 0.5;
-  stroke-dasharray: 1 4;
-  opacity: 0.22;
-  pointer-events: none;
-}
-
-/* A black margin around every coast so the sea stipple stops short of land. */
-.coast-halo {
-  fill: none;
-  stroke: #000;
-  stroke-width: 7;
-  stroke-linejoin: round;
+  opacity: 0.09;
   pointer-events: none;
 }
 

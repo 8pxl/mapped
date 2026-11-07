@@ -80,6 +80,9 @@ export class MapView {
   private pointer: ClientPoint | null = null;
   private repoll = 0;
   private hovered: string | null = null;
+  private frame = 0;
+  private patterns: SVGPatternElement[] = [];
+  private patternK = 0;
   private tiny = 9;
   private markerR = 5.5;
 
@@ -216,12 +219,13 @@ export class MapView {
     this.fx = [];
 
     this.svg.insertAdjacentHTML('afterbegin', defs());
+    this.patterns = [...this.svg.querySelectorAll<SVGPatternElement>('pattern.scaled')];
+    this.patternK = 0;
     const zoomLayer = el('g', { class: 'zoom-layer' });
     zoomLayer.append(
       el('path', { class: 'sea', d: this.path({ type: 'Sphere' }) ?? '' }),
       el('path', { class: 'sea-dots', d: this.path({ type: 'Sphere' }) ?? '' }),
       el('path', { class: 'graticule', d: this.path(geoGraticule10()) ?? '' }),
-      el('path', { class: 'coast-halo', d: this.path(LAND) ?? '' }),
     );
     this.zoneLayer = el('g', { class: 'zones' });
     zoomLayer.append(this.zoneLayer);
@@ -346,13 +350,25 @@ export class MapView {
     this.markers.set(code, { el: g, at, size });
   }
 
+  /**
+   * Records the new transform at once (clicks and effects read it) but writes the DOM at most once per frame:
+   * trackpads fire wheel events faster than the display refreshes.
+   */
   private applyTransform(t: ZoomTransform) {
     this.transform = t;
+    if (!this.frame) this.frame = requestAnimationFrame(() => this.drawTransform());
+  }
+
+  private drawTransform() {
+    this.frame = 0;
+    const t = this.transform;
     this.zoomLayer.setAttribute('transform', t.toString());
-    const inv = `scale(${1 / t.k})`;
-    this.svg
-      .querySelectorAll<SVGPatternElement>('pattern.scaled')
-      .forEach((p) => p.setAttribute('patternTransform', `${inv} ${p.dataset.turn ? `rotate(${p.dataset.turn})` : ''}`));
+    // Patterns only need rescaling when the zoom level changes, not on every pan.
+    if (t.k !== this.patternK) {
+      this.patternK = t.k;
+      const inv = `scale(${1 / t.k})`;
+      for (const p of this.patterns) p.setAttribute('patternTransform', `${inv} ${p.dataset.turn ? `rotate(${p.dataset.turn})` : ''}`);
+    }
     for (const m of this.markers.values()) {
       const [x, y] = t.apply(m.at);
       m.el.setAttribute('transform', `translate(${x},${y})`);
@@ -362,7 +378,6 @@ export class MapView {
       const [x, y] = t.apply(f.at);
       f.el.setAttribute('transform', `translate(${x},${y})`);
     }
-    this.svg.style.setProperty('--k', String(t.k));
     // Panning or zooming moves countries under a still cursor; re-check what it is over.
     if (this.pointer && !this.repoll) {
       this.repoll = requestAnimationFrame(() => {
