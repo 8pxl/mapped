@@ -24,6 +24,12 @@ export interface Session {
   ranked: boolean;
   /** A whole region, not a retry of the ones to review. */
   full: boolean;
+  /**
+   * Every country on the map that can be clicked: the whole region, even when only some of it is asked. Clicking
+   * one that isn't asked is a wrong answer like any other, so a short round still has to be told apart from its
+   * neighbours.
+   */
+  field: Country[];
   /** A missed country that keeps flashing until the player clicks it. */
   pending: Country | null;
   finished: boolean;
@@ -52,7 +58,7 @@ interface State {
   setHints: (on: boolean) => void;
   setSelection: (ids: ContinentId[]) => void;
   toggleMuted: () => void;
-  start: (def: RegionDef, pool: Country[], full: boolean) => void;
+  start: (def: RegionDef, pool: Country[], full: boolean, field?: Country[]) => void;
   startSelected: () => void;
   goMenu: () => void;
   applyRoute: () => void;
@@ -139,7 +145,7 @@ export const useStore = create<State>()((set, get) => {
       set({ muted: isMuted() });
     },
 
-    start: (def, pool, full) => {
+    start: (def, pool, full, field = countriesFor(def)) => {
       const { mode, hints, challenge } = get();
       if (full) get().setSelection(def.members);
       clearTimeout(toastTimer);
@@ -151,6 +157,7 @@ export const useStore = create<State>()((set, get) => {
           def,
           ranked: full && !hints,
           full,
+          field,
           pending: null,
           finished: false,
           record: false,

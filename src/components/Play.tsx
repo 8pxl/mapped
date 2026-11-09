@@ -13,7 +13,7 @@ export function Play() {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const playRef = useRef<HTMLElement>(null);
   const viewRef = useRef<MapView | null>(null);
-  const { game, def } = session;
+  const { game, def, field } = session;
 
   // The map is imperative D3: create it once per mount and route its events into the store.
   useLayoutEffect(() => {
@@ -57,10 +57,10 @@ export function Play() {
     };
   }, []);
 
-  // A new round (new Game object) redraws the map for its region and pool.
+  // A new round (new Game object) redraws the map for its region. All of the field is live, not just the pool.
   useLayoutEffect(() => {
-    viewRef.current!.show(def, new Set(game.pool.map((c) => c.code)), game.pool.filter((c) => c.code === 'tv'));
-  }, [game, def]);
+    viewRef.current!.show(def, new Set(field.map((c) => c.code)), field.filter((c) => c.code === 'tv'));
+  }, [game, def, field]);
 
   useKeys(viewRef);
 
