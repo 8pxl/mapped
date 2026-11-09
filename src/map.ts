@@ -4,6 +4,7 @@ import 'd3-transition';
 import { zoom, zoomIdentity, type ZoomBehavior, type ZoomTransform } from 'd3-zoom';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
 import { COLOUR_OF, ISLANDS, LAND, PALETTE, SHAPES, type Country, type Shape } from './data';
+import { comboTier } from './game';
 import { fitTarget, type RegionDef } from './regions';
 import { islandZones, zonePath, type Site } from './zones';
 
@@ -180,6 +181,19 @@ export class MapView {
   /** Drops a station badge in the country's own colour (white when it was missed). */
   stamp(at: [number, number], code: string, paint: Paint) {
     this.addFx(at, stampFx(paint === 'missed' ? 'var(--missed)' : colourOf(code), code.toUpperCase()), 1500);
+  }
+
+  /**
+   * A streak milestone, as a tag rising out of the stamp just dropped at `at`: "×5" in the streak colour joined to
+   * its word. It sits above the click, or below it near the top edge, and is nudged in from the sides.
+   */
+  combo(at: [number, number], streak: number) {
+    const [x, y] = this.transform.apply(at);
+    const below = y < 70;
+    const { g, w } = comboFx(streak, below);
+    const shift = Math.max(8 - (x - w / 2), Math.min(0, this.width - 8 - (x + w / 2)));
+    if (shift) g.setAttribute('transform', `translate(${shift} 0)`);
+    this.addFx(at, g, 1100);
   }
 
   miss(at: [number, number]) {
@@ -666,6 +680,35 @@ function stampFx(colour: string, label: string) {
   t.textContent = label;
   g.append(t);
   return g;
+}
+
+/** "×5 | On a roll": the count on the streak colour, then the word on white, as one pill. */
+function comboFx(streak: number, below: boolean) {
+  const { word, tone } = comboTier(streak);
+  const g = el('g', {});
+  const tag = el('g', { class: `combo-tag${below ? ' below' : ''}` });
+  tag.style.setProperty('--tone', tone);
+  g.append(tag);
+  const h = 26;
+  // Rough widths for bold Helvetica: enough to size the pill without measuring text before it is in the DOM.
+  const countW = 14 + String(streak).length * 9.5 + 9;
+  const wordW = 16 + word.length * 7.6;
+  const w = countW + wordW;
+  const top = below ? 24 : -24 - h;
+  const left = -w / 2;
+  tag.append(
+    el('rect', { class: 'combo-word-bg', x: String(left), y: String(top), width: String(w), height: String(h), rx: String(h / 2) }),
+    el('path', {
+      class: 'combo-count-bg',
+      d: `M${left + countW} ${top}H${left + h / 2}a${h / 2} ${h / 2} 0 0 0 0 ${h}H${left + countW}Z`,
+    }),
+  );
+  const count = el('text', { class: 'combo-count', x: String(left + countW / 2), y: String(top + 18), 'text-anchor': 'middle' });
+  count.textContent = `×${streak}`;
+  const label = el('text', { class: 'combo-word', x: String(left + countW + wordW / 2), y: String(top + 17), 'text-anchor': 'middle' });
+  label.textContent = word;
+  tag.append(count, label);
+  return { g, w };
 }
 
 function crossFx() {

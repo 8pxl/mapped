@@ -103,6 +103,15 @@ function shuffle<T>(a: T[]) {
 /** First-try streaks worth a popup: 3, 5, 10, then every 5. */
 export const isComboMilestone = (n: number) => n === 3 || n === 5 || (n >= 10 && n % 5 === 0);
 
+/** The word and colour for a streak milestone. */
+export function comboTier(streak: number) {
+  if (streak >= 20) return { word: 'Legendary', tone: 'var(--red)' };
+  if (streak >= 15) return { word: 'Unstoppable', tone: 'var(--red)' };
+  if (streak >= 10) return { word: 'On fire', tone: 'var(--c3)' };
+  if (streak >= 5) return { word: 'On a roll', tone: 'var(--c2)' };
+  return { word: 'Combo', tone: 'var(--c1)' };
+}
+
 export function formatTime(ms: number) {
   const s = Math.floor(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;

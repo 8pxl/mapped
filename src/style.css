@@ -1637,6 +1637,67 @@ kbd {
   fill: #111;
 }
 
+/* Streak milestones: "×5 | On a roll" rising out of the stamp, then floating off. */
+.combo-tag {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 6px 14px #000c);
+  animation: combo-rise 1100ms var(--ease-out) forwards;
+}
+
+.combo-tag.below {
+  transform-origin: 50% 0;
+}
+
+.combo-word-bg {
+  fill: var(--white);
+}
+
+.combo-count-bg {
+  fill: var(--tone);
+}
+
+.combo-count,
+.combo-word {
+  font-family: var(--f-sans);
+  fill: #000;
+}
+
+.combo-count {
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.combo-word {
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@keyframes combo-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.6);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.06);
+  }
+  28% {
+    transform: translateY(0) scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
 @keyframes stamp {
   0% {
     opacity: 0;
@@ -1925,102 +1986,6 @@ kbd {
   opacity: 0;
   transform: translate(-50%, 10px) scale(0.96);
   transition: opacity 0.2s, transform 0.3s var(--ease-back);
-}
-
-/* Streak milestones: a big "×5" and a word, top centre, over a burst of confetti. Never takes clicks. */
-.combo {
-  position: absolute;
-  z-index: 21;
-  top: 18px;
-  left: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  pointer-events: none;
-  transform: translateX(-50%);
-  animation: combo-life 1150ms linear forwards;
-}
-
-.combo-n {
-  font-weight: 900;
-  font-size: 56px;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
-  color: var(--white);
-  /* Two offset copies in the line colours give it a printed, slightly misregistered punch. */
-  text-shadow:
-    3px 3px 0 var(--tone),
-    -2px -2px 0 #2f6fe8,
-    0 0 24px #000;
-  animation: combo-pop 420ms var(--ease-back) both;
-}
-
-.combo-n span {
-  margin-right: 2px;
-  font-size: 0.55em;
-  vertical-align: 0.35em;
-}
-
-.combo-word {
-  padding: 4px 10px;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #000;
-  background: var(--tone);
-  border-radius: 6px;
-  animation: combo-word 360ms var(--ease-out) 90ms both;
-}
-
-.combo.big .combo-n {
-  font-size: 68px;
-  animation: combo-pop 420ms var(--ease-back) both;
-}
-
-.combo-burst {
-  position: absolute;
-  top: 28px;
-  left: 50%;
-  width: 0;
-  height: 0;
-}
-
-.combo-burst i {
-  position: absolute;
-  left: -3px;
-  top: -3px;
-  border-radius: 1px;
-}
-
-@keyframes combo-life {
-  0%,
-  78% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -8px);
-  }
-}
-
-@keyframes combo-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.4) rotate(-8deg);
-  }
-  60% {
-    opacity: 1;
-  }
-}
-
-@keyframes combo-word {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.9);
-  }
 }
 
 .toast::before {
@@ -2682,18 +2647,6 @@ kbd {
     font-size: 14px;
   }
 
-  /* The toast takes the top on phones, so the popup sits just under it. */
-  .combo {
-    top: 58px;
-  }
-
-  .combo-n {
-    font-size: 44px;
-  }
-
-  .combo.big .combo-n {
-    font-size: 52px;
-  }
 
   .topbar {
     height: 60px;
