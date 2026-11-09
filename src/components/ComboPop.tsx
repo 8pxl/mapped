@@ -15,10 +15,10 @@ const LIFE = 1150;
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * The streak popup at the top centre of the map: "×5" with a word, a burst of confetti in the line colours and,
- * from ×10, a small kick to the map. It never takes clicks and clears in about a second.
+ * The streak popup at the top centre of the map: "×5" with a word and a burst of confetti in the line colours.
+ * It never takes clicks and clears in about a second.
  */
-export function ComboPop({ shakeTarget }: { shakeTarget: React.RefObject<HTMLElement | null> }) {
+export function ComboPop() {
   const combo = useStore((s) => s.combo);
   // Only milestones reached while this round is on screen; a stale one from an earlier round never replays.
   const seen = useRef(combo?.id ?? 0);
@@ -28,13 +28,12 @@ export function ComboPop({ shakeTarget }: { shakeTarget: React.RefObject<HTMLEle
   useEffect(() => {
     if (!combo || combo.id === seen.current) return;
     seen.current = combo.id;
-    // With reduced motion the toast's "streak ×N" says it; no popup, confetti or shake.
+    // With reduced motion the toast's "streak ×N" says it; no popup or confetti.
     if (reducedMotion()) return;
     setShown(combo);
     const timer = window.setTimeout(() => setShown(null), LIFE);
-    if (combo.streak >= 10) kick(shakeTarget.current, combo.streak >= 15 ? 4 : 3);
     return () => clearTimeout(timer);
-  }, [combo, shakeTarget]);
+  }, [combo]);
 
   // Confetti fires once the popup is in the DOM.
   useEffect(() => {
@@ -80,18 +79,4 @@ function confetti(host: HTMLElement, streak: number) {
       )
       .finished.then(() => bit.remove(), () => bit.remove());
   }
-}
-
-/** A short, small shake: a few px over a quarter second, enough to feel without moving the target much. */
-function kick(el: HTMLElement | null, px: number) {
-  el?.animate(
-    [
-      { transform: 'translate(0, 0)' },
-      { transform: `translate(${-px}px, ${px / 2}px)` },
-      { transform: `translate(${px}px, ${-px / 2}px)` },
-      { transform: `translate(${-px / 2}px, 0)` },
-      { transform: 'translate(0, 0)' },
-    ],
-    { duration: 240, easing: 'ease-out' },
-  );
 }

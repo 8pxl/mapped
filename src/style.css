@@ -1977,9 +1977,7 @@ kbd {
 
 .combo.big .combo-n {
   font-size: 68px;
-  animation:
-    combo-pop 420ms var(--ease-back) both,
-    combo-jitter 260ms linear 380ms;
+  animation: combo-pop 420ms var(--ease-back) both;
 }
 
 .combo-burst {
@@ -2022,18 +2020,6 @@ kbd {
   from {
     opacity: 0;
     transform: translateY(-6px) scale(0.9);
-  }
-}
-
-@keyframes combo-jitter {
-  25% {
-    transform: translate(-2px, 1px) rotate(-1.5deg);
-  }
-  50% {
-    transform: translate(2px, -1px) rotate(1.5deg);
-  }
-  75% {
-    transform: translate(-1px, 0) rotate(-0.5deg);
   }
 }
 
