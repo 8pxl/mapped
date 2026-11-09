@@ -5,6 +5,7 @@ import { countriesFor, type Country } from './data';
 import { Game, saveBest, type Mode, type Outcome } from './game';
 import type { MapView, Paint, PickEvent } from './map';
 import { readPref, writePref } from './prefs';
+import { recordOutcome } from './review';
 import { parseChallenge, type Challenge } from './share';
 import { CONTINENTS, isContinent, parseRegionKey, selectionDef, type ContinentId, type RegionDef } from './regions';
 
@@ -252,6 +253,8 @@ export const useStore = create<State>()((set, get) => {
       const target = game.current!;
       const r = game.answer(code);
       if (r.kind === 'correct') {
+        // Slips join the review deck; first-try finds move deck cards along (unless hints made them easy).
+        recordOutcome(game.mode, code, r.attempt as Outcome, !get().hints);
         const paint = PAINT_FOR[r.attempt as Outcome];
         map.paint(code, paint);
         map.stamp(at, code, paint);
@@ -286,6 +289,7 @@ export const useStore = create<State>()((set, get) => {
       } else {
         map.flash(code);
         map.miss(at);
+        recordOutcome(game.mode, target.code, 0);
         map.paint(target.code, 'missed');
         map.reveal(target.code);
         sfx.reveal();
