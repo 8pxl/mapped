@@ -5,6 +5,7 @@ import { countriesFor, type Country } from './data';
 import { Game, saveBest, type Mode, type Outcome } from './game';
 import type { MapView, Paint, PickEvent } from './map';
 import { readPref, writePref } from './prefs';
+import { parseChallenge, type Challenge } from './share';
 import { CONTINENTS, isContinent, parseRegionKey, selectionDef, type ContinentId, type RegionDef } from './regions';
 
 export const PAINT_FOR: Record<Outcome, Paint> = { 0: 'missed', 1: 'c1', 2: 'c2', 3: 'c3' };
@@ -27,6 +28,8 @@ export interface Session {
   pending: Country | null;
   finished: boolean;
   record: boolean;
+  /** A friend's score to beat, from a shared link for this same round. */
+  challenge: Challenge | null;
   resultsOpen: boolean;
 }
 
@@ -38,6 +41,8 @@ interface State {
   muted: boolean;
   screen: 'menu' | 'play';
   session: Session | null;
+  /** The score to beat from the link that opened the app. It lasts until the player returns to the menu. */
+  challenge: Challenge | null;
   tick: number;
   toast: Toast | null;
   /** Bumped to replay the prompt card's shake. */
@@ -86,7 +91,7 @@ export const useStore = create<State>()((set, get) => {
 
   const toMenu = () => {
     clearTimeout(toastTimer);
-    set({ screen: 'menu', session: null, toast: null });
+    set({ screen: 'menu', session: null, toast: null, challenge: null });
   };
 
   const finish = () => {
@@ -112,6 +117,7 @@ export const useStore = create<State>()((set, get) => {
     muted: isMuted(),
     screen: 'menu',
     session: null,
+    challenge: null,
     tick: 0,
     toast: null,
     shake: 0,
@@ -134,7 +140,7 @@ export const useStore = create<State>()((set, get) => {
     },
 
     start: (def, pool, full) => {
-      const { mode, hints } = get();
+      const { mode, hints, challenge } = get();
       if (full) get().setSelection(def.members);
       clearTimeout(toastTimer);
       set({
@@ -149,6 +155,7 @@ export const useStore = create<State>()((set, get) => {
           finished: false,
           record: false,
           resultsOpen: false,
+          challenge: full && challenge?.region === def.id && challenge.mode === mode ? challenge : null,
         },
       });
     },
@@ -179,8 +186,10 @@ export const useStore = create<State>()((set, get) => {
         toMenu();
         return;
       }
-      const mode: Mode = new URLSearchParams(location.search).get('mode') === 'flag' ? 'flag' : 'name';
+      const params = new URLSearchParams(location.search);
+      const mode: Mode = params.get('mode') === 'flag' ? 'flag' : 'name';
       if (mode !== get().mode) get().setMode(mode);
+      set({ challenge: parseChallenge(params, def.id, mode) });
       get().start(def, countriesFor(def), true);
     },
 

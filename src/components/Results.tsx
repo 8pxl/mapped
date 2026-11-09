@@ -1,6 +1,8 @@
 import { sfx } from '../audio';
 import { COLOUR_OF, countriesFor, type Country } from '../data';
+import { useEffect, useRef, useState } from 'react';
 import { formatTime, type Outcome } from '../game';
+import { beats, describe, runOf, shareScore, shareText } from '../share';
 import { useStore } from '../store';
 import { Badge, Dialog, modeTitle, RANKS } from './shared';
 
@@ -12,8 +14,21 @@ function Swatch({ country, outcome }: { country: Country; outcome: Outcome }) {
 export function Results() {
   const session = useStore((s) => s.session)!;
   const { start, goMenu, setResultsOpen } = useStore.getState();
-  const { game: g, def, record, resultsOpen } = session;
+  const { game: g, def, record, resultsOpen, challenge } = session;
+  const [shared, setShared] = useState<'copied' | 'failed' | null>(null);
+  const resetTimer = useRef(0);
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
   if (!session.finished) return null;
+
+  const onShare = async () => {
+    sfx.click();
+    const outcome = await shareScore(shareText(def, modeTitle(g.mode), g, session.full && !session.ranked));
+    if (outcome !== 'copied' && outcome !== 'failed') return;
+    setShared(outcome);
+    clearTimeout(resetTimer.current);
+    resetTimer.current = window.setTimeout(() => setShared(null), 1800);
+  };
+  const won = challenge && beats(runOf(g), challenge);
 
   const score = g.finalScore;
   const rank = RANKS.find(([min]) => score >= min)![1];
@@ -35,6 +50,14 @@ export function Results() {
               <span className="sep">/</span>
               <span>{modeTitle(g.mode)}</span>
             </span>
+            {session.full && (
+              <button className={`share-btn${shared ? ` ${shared}` : ''}`} onClick={onShare} aria-live="polite">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 15V3M7 8l5-5 5 5M5 13v7h14v-7" />
+                </svg>
+                <span>{shared === 'copied' ? 'Copied' : shared === 'failed' ? 'Copy failed' : 'Share'}</span>
+              </button>
+            )}
           </header>
           <div className="res-hero">
             <div className="res-score">
@@ -46,6 +69,12 @@ export function Results() {
               <div className="rank-stamp">{rank}</div>
             </div>
           </div>
+          {challenge && (
+            <p className={`res-challenge${won ? ' won' : ''}`}>
+              <span>{won ? 'Challenge beaten' : 'Not beaten'}</span>
+              {won ? `You topped ${describe(challenge)}.` : `${describe(challenge)} still stands.`}
+            </p>
+          )}
           <dl className="res-stats">
             <div>
               <dt>Time</dt>

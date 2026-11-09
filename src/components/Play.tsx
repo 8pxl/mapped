@@ -121,7 +121,7 @@ export function Play() {
 }
 
 function Hud({ session }: { session: Session }) {
-  const { game, def, ranked, full, finished } = session;
+  const { game, def, ranked, full, finished, challenge } = session;
   const muted = useStore((s) => s.muted);
   useStore((s) => s.tick);
   const [, redraw] = useReducer((n: number) => n + 1, 0);
@@ -157,6 +157,14 @@ function Hud({ session }: { session: Session }) {
           {game.answered}
           <small>/{total}</small>
         </span>
+        {challenge && (
+          <span className="stat challenge" title="The score you were challenged to beat">
+            <small>To beat</small>
+            <b className="figure">
+              {challenge.score}% <small>{formatTime(challenge.seconds * 1000)}</small>
+            </b>
+          </span>
+        )}
       </div>
       <div className="hud-right">
         {game.streak >= 3 && <span className="streak">×{game.streak} streak</span>}

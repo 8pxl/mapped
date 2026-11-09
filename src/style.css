@@ -868,6 +868,25 @@ kbd {
   text-align: right;
 }
 
+/* The score to beat, from a shared link: one line beside the progress count. */
+.stat.challenge {
+  flex: none;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+  padding-left: 14px;
+  border-left: 1px solid var(--rule);
+}
+
+.stat.challenge b {
+  color: var(--c2);
+}
+
+.stat.challenge b small {
+  color: inherit;
+  opacity: 0.7;
+}
+
 .streak {
   font-weight: 900;
   font-size: 12px;
@@ -1963,6 +1982,76 @@ kbd {
 .slips em {
   font-style: normal;
   color: var(--mute);
+}
+
+/* Share: copies the score (or opens the share sheet on phones); it says "Copied" in green for a moment. */
+.share-btn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px 0 10px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #000;
+  background: var(--white);
+  border: 0;
+  border-radius: 999px;
+  transition:
+    background 180ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.share-btn svg {
+  width: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.share-btn:active {
+  transform: scale(0.96);
+}
+
+.share-btn.copied {
+  background: var(--c1);
+}
+
+.share-btn.failed {
+  background: var(--red);
+}
+
+/* A friend's score from a shared link: green when beaten, plain when it still stands. */
+.res-challenge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 20px 0 0;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.res-challenge span {
+  padding: 4px 8px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #000;
+  background: var(--white);
+  border-radius: 6px;
+}
+
+.res-challenge.won span {
+  background: var(--c1);
 }
 
 .flawless {
