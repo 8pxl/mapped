@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { create } from 'zustand';
 import { isMuted, setMuted, sfx } from './audio';
-import { countriesFor, type Country } from './data';
+import { countriesFor, countryByCode, type Country } from './data';
 import { Game, saveBest, type Mode, type Outcome } from './game';
 import type { MapView, Paint, PickEvent } from './map';
 import { readPref, writePref } from './prefs';
-import { recordOutcome } from './review';
+import { dueCodes, loadDeck, recordOutcome } from './review';
 import { parseChallenge, type Challenge } from './share';
 import { CONTINENTS, isContinent, parseRegionKey, selectionDef, type ContinentId, type RegionDef } from './regions';
 
@@ -40,11 +40,26 @@ export interface Session {
   resultsOpen: boolean;
 }
 
+/** How the menu picks what to play: continents on the map, a hand-picked list, or the review deck. */
+export type PickerTab = 'map' | 'custom' | 'review';
+
+/** Plays just these countries. The map is the smallest continent mix that holds them all, and all of it is live. */
+export function poolDef(codes: string[], kind: 'custom' | 'review'): { def: RegionDef; pool: Country[] } | null {
+  const pool = codes.map((c) => countryByCode.get(c)).filter((c): c is Country => !!c);
+  const ids = [...new Set(pool.flatMap((c) => c.regions))].filter(isContinent);
+  const base = selectionDef(ids);
+  if (!base || !pool.length) return null;
+  return { def: { ...base, id: kind, name: kind === 'custom' ? 'Custom' : 'Review' }, pool };
+}
+
 interface State {
   mode: Mode;
   hints: boolean;
   /** Continents picked on the menu. */
   selection: ContinentId[];
+  picker: PickerTab;
+  /** Countries hand-picked on the menu's list, by code. */
+  custom: string[];
   muted: boolean;
   screen: 'menu' | 'play';
   session: Session | null;
@@ -58,6 +73,10 @@ interface State {
   setMode: (mode: Mode) => void;
   setHints: (on: boolean) => void;
   setSelection: (ids: ContinentId[]) => void;
+  setPicker: (tab: PickerTab) => void;
+  setCustom: (codes: string[]) => void;
+  /** Plays a hand-picked list ("custom") or the review deck's due countries ("review"). */
+  startPool: (kind: 'custom' | 'review', codes: string[]) => void;
   toggleMuted: () => void;
   start: (def: RegionDef, pool: Country[], full: boolean, field?: Country[]) => void;
   startSelected: () => void;
@@ -121,6 +140,8 @@ export const useStore = create<State>()((set, get) => {
     mode: (readPref('mode') as Mode) || 'name',
     hints: readPref('hints') === '1',
     selection: savedSelection(),
+    picker: (['map', 'custom', 'review'] as const).find((t) => t === readPref('picker')) ?? 'map',
+    custom: readPref('custom').split(',').filter((c) => countryByCode.has(c)),
     muted: isMuted(),
     screen: 'menu',
     session: null,
@@ -141,6 +162,27 @@ export const useStore = create<State>()((set, get) => {
       writePref('selection', selection.join(','));
       set({ selection });
     },
+    setPicker: (picker) => {
+      writePref('picker', picker);
+      set({ picker });
+    },
+    setCustom: (custom) => {
+      writePref('custom', custom.join(','));
+      set({ custom });
+    },
+
+    startPool: (kind, codes) => {
+      const round = poolDef(codes, kind);
+      if (!round) return;
+      const { mode } = get();
+      const params = new URLSearchParams();
+      if (mode === 'flag') params.set('mode', 'flag');
+      if (kind === 'custom') params.set('c', round.pool.map((c) => c.code).join(','));
+      const query = params.toString().replace(/%2C/g, ',');
+      history.pushState({ fromMenu: true }, '', `/${kind}${query ? `?${query}` : ''}`);
+      get().start(round.def, round.pool, false);
+    },
+
     toggleMuted: () => {
       setMuted(!isMuted());
       set({ muted: isMuted() });
@@ -185,16 +227,31 @@ export const useStore = create<State>()((set, get) => {
       }
     },
 
-    /** "/" is the menu; "/<region>" plays it ("/europe+africa" for a mix), with "?mode=flag" for Flag only. */
+    /**
+     * "/" is the menu; "/<region>" plays it ("/europe+africa" for a mix), with "?mode=flag" for Flag only.
+     * "/custom?c=fr,de" plays a hand-picked list and "/review" the countries due for review.
+     */
     applyRoute: () => {
       const key = decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, ''));
+      const params = new URLSearchParams(location.search);
+      if (key === 'custom' || key === 'review') {
+        const mode: Mode = params.get('mode') === 'flag' ? 'flag' : 'name';
+        if (mode !== get().mode) get().setMode(mode);
+        const deck = loadDeck(mode);
+        const codes = key === 'custom' ? (params.get('c') ?? '').split(',') : dueCodes(deck).length ? dueCodes(deck) : Object.keys(deck);
+        const round = poolDef(codes, key);
+        if (round) {
+          set({ challenge: null });
+          get().start(round.def, round.pool, false);
+          return;
+        }
+      }
       const def = key ? parseRegionKey(key) : null;
       if (!def) {
         if (key) history.replaceState(null, '', '/');
         toMenu();
         return;
       }
-      const params = new URLSearchParams(location.search);
       const mode: Mode = params.get('mode') === 'flag' ? 'flag' : 'name';
       if (mode !== get().mode) get().setMode(mode);
       set({ challenge: parseChallenge(params, def.id, mode) });

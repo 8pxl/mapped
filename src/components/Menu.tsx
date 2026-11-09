@@ -4,6 +4,8 @@ import { countriesFor } from '../data';
 import { formatTime, loadBest, type Mode } from '../game';
 import { CONTINENTS, selectionDef, type ContinentId } from '../regions';
 import { useStore } from '../store';
+import { dueCodes, loadDeck, removeCard } from '../review';
+import { CountryList, PickerTabs, ReviewList } from './CountryPicker';
 import { RegionPicker, type PickerHandle } from './RegionPicker';
 import { Settings } from './Settings';
 import { Badge, MODES } from './shared';
@@ -16,6 +18,15 @@ export function Menu() {
   const setMode = useStore((s) => s.setMode);
   const setSelection = useStore((s) => s.setSelection);
   const startSelected = useStore((s) => s.startSelected);
+  const tab = useStore((s) => s.picker);
+  const custom = useStore((s) => s.custom);
+  const { setPicker, setCustom, startPool } = useStore.getState();
+  const [deck, setDeck] = useState(() => loadDeck(mode));
+  useEffect(() => setDeck(loadDeck(mode)), [mode]);
+  const due = dueCodes(deck);
+  const inDeck = Object.keys(deck);
+  // Nothing due yet: the review can still be played early, with everything in it.
+  const reviewCodes = due.length ? due : inDeck;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const picker = useRef<PickerHandle>(null);
@@ -31,9 +42,15 @@ export function Menu() {
     sfx.click();
   };
 
+  const canStart = tab === 'map' ? !!def : tab === 'custom' ? custom.length > 0 : reviewCodes.length > 0;
+
   /** From a pointer: zoom into the selection, then start. From the keyboard: start at once, no animation. */
   const mapIt = async (fromPointer: boolean) => {
-    if (!def || leaving) return;
+    if (!canStart || leaving) return;
+    if (tab !== 'map') {
+      startPool(tab, tab === 'custom' ? custom : reviewCodes);
+      return;
+    }
     if (fromPointer) {
       setLeaving(true);
       await picker.current?.zoomToSelection();
@@ -44,7 +61,7 @@ export function Menu() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (settingsOpen || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === 'Enter' && !(e.target as HTMLElement).closest('button')) {
+      if (e.key === 'Enter' && !(e.target as HTMLElement).closest('button, input, label')) {
         e.preventDefault();
         mapIt(false);
       }
@@ -91,18 +108,59 @@ export function Menu() {
         <section className="menu-section region-section" aria-labelledby="region-label">
           <div className="section-head">
             <h2 className="eyebrow" id="region-label">
-              <span className="step-num">2</span> Regions
+              <span className="step-num">2</span> Countries
             </h2>
-            <button className="btn-ghost select-all" onClick={() => setSelection(allPicked ? [] : ALL)}>
-              {allPicked ? 'Clear all' : 'Select all'}
-            </button>
+            {tab === 'map' && (
+              <button className="btn-ghost select-all" onClick={() => setSelection(allPicked ? [] : ALL)}>
+                {allPicked ? 'Clear all' : 'Select all'}
+              </button>
+            )}
+            {tab === 'custom' && custom.length > 0 && (
+              <button className="btn-ghost select-all" onClick={() => setCustom([])}>
+                Clear all
+              </button>
+            )}
           </div>
-          <RegionPicker ref={picker} selection={selection} onToggle={toggle} />
+          <PickerTabs tab={tab} due={due.length} onChange={setPicker} />
+          {tab === 'map' && <RegionPicker ref={picker} selection={selection} onToggle={toggle} />}
+          {tab === 'custom' && <CountryList selected={custom} onChange={setCustom} />}
+          {tab === 'review' && (
+            <ReviewList
+              deck={deck}
+              onRemove={(code) => {
+                removeCard(mode, code);
+                setDeck(loadDeck(mode));
+                sfx.click();
+              }}
+            />
+          )}
         </section>
 
         <div className="cta">
           <p className="cta-summary" aria-live="polite">
-            {def ? (
+            {tab === 'custom' ? (
+              custom.length ? (
+                <>
+                  <b>Custom</b>
+                  <span>
+                    {custom.length} {custom.length === 1 ? 'country' : 'countries'}
+                  </span>
+                </>
+              ) : (
+                <span>Tick the countries to play</span>
+              )
+            ) : tab === 'review' ? (
+              due.length ? (
+                <>
+                  <b>Review</b>
+                  <span>{due.length} due</span>
+                </>
+              ) : inDeck.length ? (
+                <span>Nothing due. Play all {inDeck.length} early?</span>
+              ) : (
+                <span>Nothing to review yet</span>
+              )
+            ) : def ? (
               <>
                 <Badge region={def} />
                 <b>{def.name}</b>
@@ -117,7 +175,7 @@ export function Menu() {
               <span>Pick one or more regions on the map</span>
             )}
           </p>
-          <button className="btn map-it" disabled={!def} onClick={(e) => mapIt(e.detail > 0)}>
+          <button className="btn map-it" disabled={!canStart} onClick={(e) => mapIt(e.detail > 0)}>
             map it!
           </button>
         </div>

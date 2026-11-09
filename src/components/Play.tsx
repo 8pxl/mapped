@@ -145,7 +145,11 @@ function Hud({ session }: { session: Session }) {
           <span>{def.name}</span>
           <small>
             <span>{modeTitle(game.mode)}</span>
-            {!ranked && <span className="practice">{full ? 'Hints on · unranked' : 'Retry · unranked'}</span>}
+            {!ranked && (
+              <span className="practice">
+                {full ? 'Hints on · unranked' : def.id === 'custom' || def.id === 'review' ? 'Unranked' : 'Retry · unranked'}
+              </span>
+            )}
           </small>
         </div>
       </div>

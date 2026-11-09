@@ -310,6 +310,8 @@ kbd {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Tall enough for the Select all / Clear all button, so the row holds still when a tab has none. */
+  min-height: 32px;
   margin-bottom: 14px;
 }
 
@@ -483,6 +485,405 @@ kbd {
     opacity: 0;
     transform: translate(-50%, -50%) translateY(6px);
   }
+}
+
+/* ---------- Picking what to play: regions, a country list, or the review deck ---------- */
+
+.picker-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.picker-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--white);
+  background: var(--panel);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--rule-2);
+  transition:
+    background 180ms var(--ease-out),
+    color 180ms var(--ease-out),
+    transform 120ms var(--ease-out);
+}
+
+.picker-tab:hover {
+  background: var(--panel-2);
+}
+
+.picker-tab:active {
+  transform: scale(0.96);
+}
+
+.picker-tab[aria-selected='true'] {
+  color: #000;
+  background: var(--white);
+  box-shadow: none;
+}
+
+.due-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 11px;
+  color: #000;
+  background: var(--c2);
+  border-radius: 999px;
+}
+
+.country-list,
+.review-list {
+  animation: list-in 240ms var(--ease-out);
+}
+
+@keyframes list-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.cl-search {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--white);
+  background: var(--panel);
+  border: 1px solid var(--rule-2);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.cl-search:focus {
+  border-color: var(--white);
+}
+
+.cl-search::placeholder {
+  color: var(--mute);
+}
+
+.cl-groups {
+  margin-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.cl-group {
+  border-bottom: 1px solid var(--rule);
+}
+
+.cl-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cl-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  font-weight: 700;
+  font-size: 15px;
+  text-align: left;
+  color: var(--white);
+  background: none;
+  border: 0;
+}
+
+.cl-toggle:disabled {
+  cursor: default;
+}
+
+.cl-toggle .badge {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+
+.chev {
+  flex: none;
+  width: 16px;
+  fill: none;
+  stroke: var(--mute);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 220ms var(--ease-out);
+}
+
+.cl-group[data-open] .chev {
+  transform: rotate(90deg);
+}
+
+.cl-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-count {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mute);
+}
+
+.cl-count.some {
+  color: var(--white);
+}
+
+.cl-all {
+  flex: none;
+  min-width: 56px;
+  justify-content: center;
+}
+
+/* Collapsing by animating the row height from 0fr to 1fr: no measuring, and it follows the content. */
+.cl-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 260ms var(--ease-out);
+}
+
+.cl-group[data-open] .cl-body {
+  grid-template-rows: 1fr;
+}
+
+.cl-rows {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 2px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cl-group[data-open] .cl-rows {
+  padding-bottom: 12px;
+}
+
+.cl-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.cl-row:hover {
+  background: var(--panel-2);
+}
+
+.cl-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-row img {
+  flex: none;
+  width: 24px;
+  height: 18px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px #ffffff26;
+}
+
+/* Checkboxes in the group's colour, white tick on top. */
+.cl-row input {
+  flex: none;
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1.5px var(--rule-2);
+  transition:
+    background 150ms var(--ease-out),
+    box-shadow 150ms var(--ease-out);
+}
+
+.cl-row input::after {
+  content: '';
+  width: 9px;
+  height: 5px;
+  margin-top: -2px;
+  border: solid #fff;
+  border-width: 0 0 2.5px 2.5px;
+  transform: rotate(-45deg) scale(0);
+  transition: transform 160ms var(--ease-back);
+}
+
+.cl-row input:checked {
+  background: var(--line);
+  box-shadow: none;
+}
+
+.cl-row input:checked::after {
+  transform: rotate(-45deg) scale(1);
+}
+
+.cl-row input:focus-visible {
+  outline: 2px solid var(--white);
+  outline-offset: 2px;
+}
+
+.cl-empty {
+  margin: 16px 0;
+  color: var(--mute);
+}
+
+.review-list.empty p {
+  margin: 0;
+  padding: 28px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mute);
+  border-block: 1px solid var(--rule);
+}
+
+.review-list.empty b {
+  color: var(--white);
+}
+
+.rv-summary {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rv-summary b {
+  color: var(--c2);
+}
+
+.rv-summary span {
+  margin: 0 4px;
+  color: var(--mute-2);
+}
+
+.rv-how {
+  margin: 6px 0 14px;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.rv-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+
+.rv-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rv-row img {
+  flex: none;
+  width: 28px;
+  height: 21px;
+  object-fit: cover;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px #ffffff26;
+}
+
+.rv-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Five pips: one per first-try find on the way to learnt. */
+.rv-steps {
+  display: flex;
+  gap: 3px;
+}
+
+.rv-steps i {
+  width: 10px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--rule-2);
+}
+
+.rv-steps i.on {
+  background: var(--c1);
+}
+
+.rv-due {
+  min-width: 48px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.rv-row.due .rv-due {
+  color: var(--c2);
+}
+
+.rv-remove {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  opacity: 0.5;
+  transition:
+    opacity 120ms ease,
+    background 120ms ease;
+}
+
+.rv-remove:hover {
+  opacity: 1;
+  background: var(--panel-2);
+}
+
+.rv-remove svg {
+  width: 16px;
+  fill: none;
+  stroke: var(--white);
+  stroke-width: 2.2;
+  stroke-linecap: round;
 }
 
 /* ---------- Call to action ---------- */

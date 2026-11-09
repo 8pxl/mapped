@@ -29,6 +29,8 @@ export function Results() {
     resetTimer.current = window.setTimeout(() => setShared(null), 1800);
   };
   const won = challenge && beats(runOf(g), challenge);
+  /** A hand-picked list or a review: playing again repeats the same countries. */
+  const picked = def.id === 'custom' || def.id === 'review';
 
   const score = g.finalScore;
   const rank = RANKS.find(([min]) => score >= min)![1];
@@ -121,7 +123,7 @@ export function Results() {
               Retry {slips.length} to review
             </button>
           )}
-          <button className={`btn${slips.length ? ' alt' : ''}`} data-act="again" onClick={act(() => start(def, countriesFor(def), true))}>
+          <button className={`btn${slips.length ? ' alt' : ''}`} data-act="again" onClick={act(() => (picked ? start(def, g.pool, false, session.field) : start(def, countriesFor(def), true)))}>
             Play again
           </button>
           <button className="btn alt" data-act="map" onClick={act(() => setResultsOpen(false))}>
