@@ -7,6 +7,13 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# The old address forwards to the new one, path and query included (shared challenge links keep working).
+[[redirects]]
+  from = "https://flags.keijay.me/*"
+  to = "https://mapped.keijay.me/:splat"
+  status = 301
+  force = true
+
 # Client-side routes like /europe serve the app.
 [[redirects]]
   from = "/*"
