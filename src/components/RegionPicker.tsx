@@ -12,7 +12,7 @@ const PAD = 14;
 const EASE_IN_OUT = 'cubic-bezier(0.77, 0, 0.175, 1)';
 /** Selecting and deselecting, in ms. The labels' colour transitions in style.css use the same times. */
 const POUR_IN = 420;
-const POUR_OUT = 280;
+const POUR_OUT = 380;
 const STAGGER = 45;
 /** The reveal circle is solid out to this fraction of its radius, then fades: a soft edge where white meets colour. */
 const SOFT = 0.65;
@@ -32,8 +32,13 @@ function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
     return at(s, y1, y2);
   };
 }
-/** The --ease-out token. */
+/** The --ease-out token: selecting pours the colour out fast, then settles. */
 const easeOut = cubicBezier(0.22, 1, 0.36, 1);
+/**
+ * Deselecting, matching `--ease-retract` in style.css. Most of an outline lies far from the click, so an ease-out
+ * would clear it in a frame or two; this starts promptly but keeps the retraction visible to the end.
+ */
+const retract = cubicBezier(0.3, 0, 0.3, 1);
 
 interface BlockGeo {
   def: RegionDef;
@@ -147,10 +152,30 @@ export function RegionPicker({
     run(id).r = on ? Infinity : 0;
   }
 
-  /** How far the circle must reach from `at` to cover the whole continent, soft edge included. */
-  const radiusFrom = (b: BlockGeo, [x, y]: [number, number]) => {
-    const [[x0, y0], [x1, y1]] = b.bounds;
-    return (Math.max(...[[x0, y0], [x1, y0], [x0, y1], [x1, y1]].map(([cx, cy]) => Math.hypot(cx - x, cy - y))) + 6) / SOFT;
+  /** Points along each coloured outline, sampled once, for measuring how far the reveal must reach. */
+  const samples = useRef(new Map<ContinentId, DOMPoint[]>());
+  const outlineFrom = (b: BlockGeo) => {
+    if (!samples.current.has(b.id)) {
+      const line = lines.current.get(b.id)!;
+      const len = line.getTotalLength();
+      samples.current.set(b.id, Array.from({ length: 240 }, (_, i) => line.getPointAtLength((len * i) / 240)));
+    }
+    return samples.current.get(b.id)!;
+  };
+
+  /**
+   * The radii between which the circle from `at` changes what's visible: below `lo` it shows none of the outline,
+   * above `hi` all of it, soft edge included. Animating between just these keeps every frame moving.
+   */
+  const radiusRange = (b: BlockGeo, [x, y]: [number, number]) => {
+    let near = Infinity;
+    let far = 0;
+    for (const p of outlineFrom(b)) {
+      const d = Math.hypot(p.x - x, p.y - y);
+      near = Math.min(near, d);
+      far = Math.max(far, d);
+    }
+    return { lo: Math.max(0, near - 2), hi: (far + 2) / SOFT };
   };
 
   function pour(b: BlockGeo, on: boolean, at: [number, number], animate: boolean, delay: number) {
@@ -174,9 +199,10 @@ export function RegionPicker({
       return;
     }
 
-    const full = radiusFrom(b, at);
-    const from = Math.min(state.r, full);
-    const to = on ? full : 0;
+    const { lo, hi } = radiusRange(b, at);
+    // An interrupted reveal carries on from where it got to; a settled one starts at the matching end.
+    const from = Math.min(hi, Math.max(lo, state.r));
+    const to = on ? hi : lo;
     const duration = on ? POUR_IN : POUR_OUT;
     dot.setAttribute('cx', String(at[0]));
     dot.setAttribute('cy', String(at[1]));
@@ -187,7 +213,7 @@ export function RegionPicker({
     const start = performance.now() + delay;
     const frame = (now: number) => {
       const t = Math.min(1, Math.max(0, (now - start) / duration));
-      state.r = from + (to - from) * easeOut(t);
+      state.r = from + (to - from) * (on ? easeOut : retract)(t);
       dot.setAttribute('r', String(state.r));
       if (t < 1) state.raf = requestAnimationFrame(frame);
       else settle(b.id, on);

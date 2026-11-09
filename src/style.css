@@ -35,6 +35,8 @@
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Deselecting in the region picker: starts promptly, so the outline visibly retracts rather than blinking out. */
+  --ease-retract: cubic-bezier(0.3, 0, 0.3, 1);
   color-scheme: dark;
 }
 
@@ -380,7 +382,7 @@ kbd {
 
 /*
  * Region labels double as the accessible toggles, and as big targets for small regions. Their colour changes over
- * the outline's reveal (420ms in, 280ms out, same curve, same stagger via --delay); hover only moves the ring.
+ * the outline's reveal (420ms --ease-out in, 380ms --ease-retract out, same stagger via --delay); hover only moves the ring.
  */
 .region-pill {
   position: absolute;
@@ -401,8 +403,8 @@ kbd {
     0 0 0 0 var(--line);
   transform: translate(-50%, -50%);
   transition:
-    background 280ms var(--ease-out) var(--delay, 0ms),
-    color 280ms var(--ease-out) var(--delay, 0ms),
+    background 380ms var(--ease-retract) var(--delay, 0ms),
+    color 380ms var(--ease-retract) var(--delay, 0ms),
     box-shadow 150ms ease,
     transform 160ms var(--ease-out);
 }
@@ -413,9 +415,9 @@ kbd {
   font-size: 11px;
   box-shadow: none;
   transition:
-    background 280ms var(--ease-out) var(--delay, 0ms),
-    color 280ms var(--ease-out) var(--delay, 0ms),
-    box-shadow 280ms var(--ease-out) var(--delay, 0ms);
+    background 380ms var(--ease-retract) var(--delay, 0ms),
+    color 380ms var(--ease-retract) var(--delay, 0ms),
+    box-shadow 380ms var(--ease-retract) var(--delay, 0ms);
 }
 
 /* Unpicked labels stay black and white too; the badge takes its colour on selection. */
@@ -432,10 +434,12 @@ kbd {
     inset 0 0 0 0 var(--rule-2),
     0 0 0 0 var(--line);
   transition-duration: 420ms, 420ms, 150ms, 160ms;
+  transition-timing-function: var(--ease-out), var(--ease-out), ease, var(--ease-out);
 }
 
 .region-pill[aria-pressed='true'] .badge {
   transition-duration: 420ms;
+  transition-timing-function: var(--ease-out);
 }
 
 .region-pill[data-hover] {
