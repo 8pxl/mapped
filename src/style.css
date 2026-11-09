@@ -1927,6 +1927,116 @@ kbd {
   transition: opacity 0.2s, transform 0.3s var(--ease-back);
 }
 
+/* Streak milestones: a big "×5" and a word, top centre, over a burst of confetti. Never takes clicks. */
+.combo {
+  position: absolute;
+  z-index: 21;
+  top: 18px;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: combo-life 1150ms linear forwards;
+}
+
+.combo-n {
+  font-weight: 900;
+  font-size: 56px;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--white);
+  /* Two offset copies in the line colours give it a printed, slightly misregistered punch. */
+  text-shadow:
+    3px 3px 0 var(--tone),
+    -2px -2px 0 #2f6fe8,
+    0 0 24px #000;
+  animation: combo-pop 420ms var(--ease-back) both;
+}
+
+.combo-n span {
+  margin-right: 2px;
+  font-size: 0.55em;
+  vertical-align: 0.35em;
+}
+
+.combo-word {
+  padding: 4px 10px;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #000;
+  background: var(--tone);
+  border-radius: 6px;
+  animation: combo-word 360ms var(--ease-out) 90ms both;
+}
+
+.combo.big .combo-n {
+  font-size: 68px;
+  animation:
+    combo-pop 420ms var(--ease-back) both,
+    combo-jitter 260ms linear 380ms;
+}
+
+.combo-burst {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.combo-burst i {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  border-radius: 1px;
+}
+
+@keyframes combo-life {
+  0%,
+  78% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+}
+
+@keyframes combo-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-8deg);
+  }
+  60% {
+    opacity: 1;
+  }
+}
+
+@keyframes combo-word {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.9);
+  }
+}
+
+@keyframes combo-jitter {
+  25% {
+    transform: translate(-2px, 1px) rotate(-1.5deg);
+  }
+  50% {
+    transform: translate(2px, -1px) rotate(1.5deg);
+  }
+  75% {
+    transform: translate(-1px, 0) rotate(-0.5deg);
+  }
+}
+
 .toast::before {
   content: '';
   flex: none;
@@ -2584,6 +2694,19 @@ kbd {
     top: 12px;
     bottom: auto;
     font-size: 14px;
+  }
+
+  /* The toast takes the top on phones, so the popup sits just under it. */
+  .combo {
+    top: 58px;
+  }
+
+  .combo-n {
+    font-size: 44px;
+  }
+
+  .combo.big .combo-n {
+    font-size: 52px;
   }
 
   .topbar {

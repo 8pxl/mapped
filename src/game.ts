@@ -100,6 +100,9 @@ function shuffle<T>(a: T[]) {
   return a;
 }
 
+/** First-try streaks worth a popup: 3, 5, 10, then every 5. */
+export const isComboMilestone = (n: number) => n === 3 || n === 5 || (n >= 10 && n % 5 === 0);
+
 export function formatTime(ms: number) {
   const s = Math.floor(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;

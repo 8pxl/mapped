@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useReducer, useRef } from 'react';
 import { formatTime, MAX_ATTEMPTS } from '../game';
 import { MapView } from '../map';
 import { registerMap, useStore, type Session, type Toast } from '../store';
+import { ComboPop } from './ComboPop';
 import { Results } from './Results';
 import { Badge, modeTitle } from './shared';
 
@@ -78,6 +79,7 @@ export function Play() {
         <div ref={mapRef} className="map-layer" />
         <Ticket ref={ticketRef} session={session} />
         <ToastView />
+        <ComboPop shakeTarget={mapRef} />
         <div ref={tooltipRef} className="tooltip" hidden />
         <div className="zoom">
           <button id="zoom-in" className="pointer-only" onClick={() => viewRef.current?.zoomBy(1.8)} aria-label="Zoom in">

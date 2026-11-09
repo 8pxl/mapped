@@ -66,6 +66,12 @@ export const sfx = {
       tone(300, 0, 0.18, 'square', 0.05, 200);
       tone(220, 0.16, 0.26, 'square', 0.05, 140);
     }),
+  /** A quick rising run after the hit, for a streak milestone; longer runs reach higher. */
+  combo: (streak: number) =>
+    play(() => {
+      const notes = streak >= 10 ? [784, 988, 1175, 1568] : [784, 988, 1175];
+      notes.forEach((f, i) => tone(f, 0.14 + i * 0.055, 0.12, 'square', 0.045));
+    }),
   click: () => play(() => tone(900, 0, 0.04, 'square', 0.03)),
   finish: () =>
     play(() => {

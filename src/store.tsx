@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { create } from 'zustand';
 import { isMuted, setMuted, sfx } from './audio';
 import { countriesFor, countryByCode, type Country } from './data';
-import { Game, saveBest, type Mode, type Outcome } from './game';
+import { Game, isComboMilestone, saveBest, type Mode, type Outcome } from './game';
 import type { MapView, Paint, PickEvent } from './map';
 import { readPref, writePref } from './prefs';
 import { dueCodes, loadDeck, recordOutcome } from './review';
@@ -69,6 +69,8 @@ interface State {
   toast: Toast | null;
   /** Bumped to replay the prompt card's shake. */
   shake: number;
+  /** The latest streak milestone, for the combo popup; `id` changes on each one so it replays. */
+  combo: { id: number; streak: number } | null;
 
   setMode: (mode: Mode) => void;
   setHints: (on: boolean) => void;
@@ -149,6 +151,7 @@ export const useStore = create<State>()((set, get) => {
     tick: 0,
     toast: null,
     shake: 0,
+    combo: null,
 
     setMode: (mode) => {
       writePref('mode', mode);
@@ -317,6 +320,10 @@ export const useStore = create<State>()((set, get) => {
         map.stamp(at, code, paint);
         if (r.attempt === 1) sfx.correct(r.streak);
         else sfx.late();
+        if (r.attempt === 1 && isComboMilestone(r.streak)) {
+          sfx.combo(r.streak);
+          set((st) => ({ combo: { id: (st.combo?.id ?? 0) + 1, streak: r.streak } }));
+        }
         toast(
           <>
             {target.name}
