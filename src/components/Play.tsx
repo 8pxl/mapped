@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useReducer, useRef } from 'react';
 import type { Country } from '../data';
+import { PENALTY_MS } from '../daily';
 import { formatTime, MAX_ATTEMPTS } from '../game';
 import { MapView } from '../map';
 import { boardFor, registerMap, struckFor, useStore, type Session, type Toast } from '../store';
@@ -108,7 +109,8 @@ function MapPlay() {
         return;
       }
       const found = active && s.game.results.has(shape.code!);
-      const show = !active || found || hints || s.finished;
+      // The daily ignores hints: naming countries on hover would give it away.
+      const show = !active || found || (hints && !s.daily) || s.finished;
       playEl.classList.toggle('pointing', (active && !found) || shape.code === s.pending?.code);
       tip.hidden = !show;
       if (!show) return;
@@ -211,8 +213,8 @@ function Hud({ session }: { session: Session }) {
         <div className="hud-title">
           <span>{def.name}</span>
           <small>
-            <span>{modeTitle(game.mode)}</span>
-            {!ranked && (
+            <span>{session.daily ? 'Daily' : modeTitle(game.mode)}</span>
+            {!ranked && !session.daily && (
               <span className="practice">
                 {full ? 'Hints on · unranked' : def.id === 'custom' || def.id === 'review' ? 'Unranked' : 'Retry · unranked'}
               </span>
@@ -239,10 +241,17 @@ function Hud({ session }: { session: Session }) {
       </div>
       <div className="hud-right">
         {game.streak >= 3 && <span className="streak">×{game.streak} streak</span>}
-        <span className="stat">
-          <small>Score</small>
-          <b className="figure">{Math.round(game.score * 100)}%</b>
-        </span>
+        {session.daily ? (
+          <span className="stat">
+            <small>Misses</small>
+            <b className="figure">{game.misses}</b>
+          </span>
+        ) : (
+          <span className="stat">
+            <small>Score</small>
+            <b className="figure">{Math.round(game.score * 100)}%</b>
+          </span>
+        )}
         <span className="stat">
           <small>Time</small>
           <b className="figure">{formatTime(game.elapsed)}</b>
@@ -265,7 +274,8 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
   const el = useRef<HTMLDivElement | null>(null);
   const { game, pending, finished } = session;
   const current = pending ?? game.current;
-  const promptKey = finished ? 'done' : `${game.answered}:${current?.code}:${pending ? 'reveal' : ''}`;
+  // The daily's card stays put while its list ticks off; the others deal a new card per question.
+  const promptKey = finished ? 'done' : session.daily ? 'daily' : `${game.answered}:${current?.code}:${pending ? 'reveal' : ''}`;
 
   // Replay a CSS animation by removing its class and forcing a reflow before adding it back.
   const replay = (cls: string) => {
@@ -301,6 +311,7 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
       </div>
     );
 
+  if (session.daily && !finished) return <DailyTicket ref={setRef} session={session} />;
   if (!current) return <div ref={setRef} className="ticket" />;
   if (game.mode === 'pick') return <PickTicket ref={setRef} session={session} target={current} />;
   const flagOnly = game.mode === 'flag';
@@ -348,6 +359,32 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
           Skip <kbd>S</kbd>
         </button>
       </div>
+    </div>
+  );
+}
+
+/** The daily's card: the theme, and every country to find, ticked off as they're found in any order. */
+function DailyTicket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElement> }) {
+  const { game, daily } = session;
+  const list = [...game.pool].sort((a, b) => a.name.localeCompare(b.name));
+  return (
+    <div ref={ref} className="ticket daily-ticket" aria-live="polite">
+      <div className="ticket-label">
+        <span>Daily #{daily!.n}</span>
+        <span className="ticket-count">
+          {game.answered} / {game.pool.length}
+        </span>
+      </div>
+      <div className="daily-theme">{daily!.theme.title}</div>
+      <ul className="daily-list">
+        {list.map((c) => (
+          <li key={c.code} className={game.results.has(c.code) ? 'found' : ''}>
+            <i aria-hidden="true" />
+            {c.name}
+          </li>
+        ))}
+      </ul>
+      <p className="daily-rule">Any order · wrong click +{PENALTY_MS / 1000}s</p>
     </div>
   );
 }

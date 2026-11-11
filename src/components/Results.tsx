@@ -5,6 +5,7 @@ import { formatTime, type Outcome } from '../game';
 import { beats, describe, runOf, shareScore, shareText } from '../share';
 import { useStore } from '../store';
 import { Badge, Dialog, modeTitle, RANKS } from './shared';
+import { dailyShareText, dailyStreak, loadRun, untilNext } from '../daily';
 
 function Swatch({ country, outcome }: { country: Country; outcome: Outcome }) {
   if (outcome === 0) return <i className="swatch missed" />;
@@ -19,6 +20,7 @@ export function Results() {
   const resetTimer = useRef(0);
   useEffect(() => () => clearTimeout(resetTimer.current), []);
   if (!session.finished) return null;
+  if (session.daily) return <DailyResults />;
 
   const onShare = async () => {
     sfx.click();
@@ -124,6 +126,95 @@ export function Results() {
             </button>
           )}
           <button className={`btn${slips.length ? ' alt' : ''}`} data-act="again" onClick={act(() => (picked ? start(def, g.pool, false, session.field) : start(def, countriesFor(def), true)))}>
+            Play again
+          </button>
+          <button className="btn alt" data-act="map" onClick={act(() => setResultsOpen(false))}>
+            Map
+          </button>
+          <button className="btn alt" data-act="menu" onClick={act(goMenu)}>
+            Menu
+          </button>
+        </footer>
+      </div>
+    </Dialog>
+  );
+}
+
+/** The daily's results: the time with penalties, the fun fact behind the theme, and when the next one comes. */
+function DailyResults() {
+  const session = useStore((s) => s.session)!;
+  const { goMenu, setResultsOpen, startDaily } = useStore.getState();
+  const { game: g, daily, resultsOpen } = session;
+  const { n, theme, first } = daily!;
+  const [shared, setShared] = useState<'copied' | 'failed' | null>(null);
+  const resetTimer = useRef(0);
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
+  // The day's first run is the one that counts and gets shared; a replay just shows how it went.
+  const kept = loadRun(n) ?? { time: g.elapsed, misses: g.misses };
+  const penalty = (g.misses * g.penaltyMs) / 1000;
+  const act = (fn: () => void) => () => {
+    sfx.click();
+    fn();
+  };
+  const onShare = async () => {
+    sfx.click();
+    const outcome = await shareScore(dailyShareText(n, theme, kept, g.pool.length));
+    if (outcome !== 'copied' && outcome !== 'failed') return;
+    setShared(outcome);
+    clearTimeout(resetTimer.current);
+    resetTimer.current = window.setTimeout(() => setShared(null), 1800);
+  };
+
+  return (
+    <Dialog id="results" open={resultsOpen} onClose={() => setResultsOpen(false)} className="results" dismissOnBackdrop={false}>
+      <div id="results-body">
+        <div className="res-main" tabIndex={-1} data-autofocus>
+          <header className="res-top">
+            <span className="res-kicker">
+              <span>Daily #{n}</span>
+              <span className="sep">/</span>
+              <span>{g.pool.length} countries</span>
+            </span>
+            <button className={`share-btn${shared ? ` ${shared}` : ''}`} onClick={onShare} aria-live="polite">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 15V3M7 8l5-5 5 5M5 13v7h14v-7" />
+              </svg>
+              <span>{shared === 'copied' ? 'Copied' : shared === 'failed' ? 'Copy failed' : 'Share'}</span>
+            </button>
+          </header>
+          <div className="res-hero">
+            <div className="res-score daily-time">{formatTime(g.elapsed)}</div>
+            <div className="res-badges">
+              <div className="rank-stamp">{g.misses ? `${g.misses} ${g.misses === 1 ? 'miss' : 'misses'}` : 'No misses'}</div>
+            </div>
+          </div>
+          {!first && (
+            <p className="res-challenge">
+              <span>Replay</span>
+              Your first run today, {formatTime(kept.time)}, is the one that counts.
+            </p>
+          )}
+          <section className="daily-fact">
+            <h3>{theme.title}</h3>
+            <p>{theme.fact}</p>
+          </section>
+          <dl className="res-stats">
+            <div>
+              <dt>Penalty</dt>
+              <dd>+{penalty}s</dd>
+            </div>
+            <div>
+              <dt>Day streak</dt>
+              <dd>{dailyStreak()}</dd>
+            </div>
+            <div>
+              <dt>Next in</dt>
+              <dd className="next-in">{untilNext()}</dd>
+            </div>
+          </dl>
+        </div>
+        <footer className="res-actions no-retry">
+          <button className="btn" data-act="again" onClick={act(startDaily)}>
             Play again
           </button>
           <button className="btn alt" data-act="map" onClick={act(() => setResultsOpen(false))}>

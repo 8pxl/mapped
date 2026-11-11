@@ -7,6 +7,7 @@ import type { MapView, Paint, PickEvent } from './map';
 import { readPref, writePref } from './prefs';
 import { dueCodes, loadDeck, recordOutcome } from './review';
 import { parseChallenge, type Challenge } from './share';
+import { loadRun, PENALTY_MS, saveRun, themeFor, todayNumber, type Theme } from './daily';
 import { CONTINENTS, isContinent, parseRegionKey, selectionDef, type ContinentId, type RegionDef } from './regions';
 
 export const PAINT_FOR: Record<Outcome, Paint> = { 0: 'missed', 1: 'c1', 2: 'c2', 3: 'c3' };
@@ -37,8 +38,13 @@ export interface Session {
   record: boolean;
   /** A friend's score to beat, from a shared link for this same round. */
   challenge: Challenge | null;
+  /** The daily puzzle this round plays, if it is one; `first` when it's the day's first try and so the one kept. */
+  daily: { n: number; theme: Theme; first: boolean } | null;
   resultsOpen: boolean;
 }
+
+/** The menu's two halves: the daily puzzle, or the learning games. */
+export type Section = 'daily' | 'learn';
 
 /** How the menu picks what to play: continents on the map, a hand-picked list, or the review deck. */
 export type PickerTab = 'map' | 'custom' | 'review';
@@ -58,6 +64,7 @@ interface State {
   /** Continents picked on the menu. */
   selection: ContinentId[];
   picker: PickerTab;
+  section: Section;
   /** Countries hand-picked on the menu's list, by code. */
   custom: string[];
   muted: boolean;
@@ -80,6 +87,9 @@ interface State {
   toggleMuted: () => void;
   start: (def: RegionDef, pool: Country[], full: boolean, field?: Country[]) => void;
   startSelected: () => void;
+  /** Plays today's daily puzzle. */
+  startDaily: () => void;
+  setSection: (section: Section) => void;
   goMenu: () => void;
   applyRoute: () => void;
   pick: (e: PickEvent) => void;
@@ -143,7 +153,8 @@ export const useStore = create<State>()((set, get) => {
     const s = get().session!;
     const g = s.game;
     sfx.finish();
-    const record = s.ranked && saveBest(g.mode, g.region, { score: g.finalScore, time: g.elapsed });
+    if (s.daily?.first) saveRun(s.daily.n, { time: g.elapsed, misses: g.misses });
+    const record = !s.daily && s.ranked && saveBest(g.mode, g.region, { score: g.finalScore, time: g.elapsed });
     patchSession({ finished: true, record });
     setTimeout(() => {
       if (get().session?.game === g) patchSession({ resultsOpen: true });
@@ -160,6 +171,7 @@ export const useStore = create<State>()((set, get) => {
     hints: readPref('hints') === '1',
     selection: savedSelection(),
     picker: (['map', 'custom', 'review'] as const).find((t) => t === readPref('picker')) ?? 'map',
+    section: readPref('section') === 'learn' ? 'learn' : 'daily',
     custom: readPref('custom').split(',').filter((c) => countryByCode.has(c)),
     muted: isMuted(),
     screen: 'menu',
@@ -180,6 +192,10 @@ export const useStore = create<State>()((set, get) => {
     setSelection: (selection) => {
       writePref('selection', selection.join(','));
       set({ selection });
+    },
+    setSection: (section) => {
+      writePref('section', section);
+      set({ section });
     },
     setPicker: (picker) => {
       writePref('picker', picker);
@@ -225,6 +241,36 @@ export const useStore = create<State>()((set, get) => {
           record: false,
           resultsOpen: false,
           challenge: full && challenge?.region === def.id && challenge.mode === mode ? challenge : null,
+          daily: null,
+        },
+      });
+    },
+
+    startDaily: () => {
+      const n = todayNumber();
+      const theme = themeFor(n);
+      const pool = theme.codes.map((c) => countryByCode.get(c)!);
+      const ids = [...new Set(pool.flatMap((c) => c.regions))].filter(isContinent);
+      const base = selectionDef(ids)!;
+      const def: RegionDef = { ...base, id: 'daily', name: `Daily #${n}` };
+      if (location.pathname !== '/daily') history.pushState({ fromMenu: true }, '', '/daily');
+      clearTimeout(toastTimer);
+      set({
+        screen: 'play',
+        toast: null,
+        challenge: null,
+        session: {
+          game: new Game('name', 'daily', pool, PENALTY_MS),
+          def,
+          ranked: true,
+          full: false,
+          field: countriesFor(def),
+          pending: null,
+          finished: false,
+          record: false,
+          resultsOpen: false,
+          challenge: null,
+          daily: { n, theme, first: !loadRun(n) },
         },
       });
     },
@@ -253,6 +299,10 @@ export const useStore = create<State>()((set, get) => {
     applyRoute: () => {
       const key = decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, ''));
       const params = new URLSearchParams(location.search);
+      if (key === 'daily') {
+        get().startDaily();
+        return;
+      }
       if (key === 'custom' || key === 'review') {
         const mode = parseMode(params.get('mode'));
         if (mode !== get().mode) get().setMode(mode);
@@ -324,6 +374,31 @@ export const useStore = create<State>()((set, get) => {
             {shape.name} <small>already found</small>
           </>,
         );
+        return;
+      }
+      if (s.daily) {
+        const r = game.answer(code);
+        if (r.kind === 'correct') {
+          map.paint(code, 'c1');
+          map.stamp(at, code, 'c1');
+          sfx.correct(r.streak);
+          clearTimeout(toastTimer);
+          set({ toast: null });
+          advance();
+        } else {
+          map.flash(code);
+          map.miss(at);
+          sfx.wrong();
+          navigator.vibrate?.(35);
+          shake();
+          toast(
+            <>
+              That's {shape.name}. <small>+{PENALTY_MS / 1000}s</small>
+            </>,
+            'bad',
+          );
+          bump();
+        }
         return;
       }
       const target = game.current!;
@@ -454,7 +529,7 @@ export const useStore = create<State>()((set, get) => {
 
     skip: () => {
       const s = get().session;
-      if (!s || s.pending || s.game.pool.length - s.game.answered < 2) return;
+      if (!s || s.pending || s.daily || s.game.pool.length - s.game.answered < 2) return;
       s.game.skip();
       sfx.click();
       bump();

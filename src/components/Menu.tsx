@@ -9,6 +9,7 @@ import { CountryList, PickerTabs, ReviewList } from './CountryPicker';
 import { RegionPicker, type PickerHandle } from './RegionPicker';
 import { Settings } from './Settings';
 import { Badge, MODES } from './shared';
+import { dailyStreak, loadRun, PENALTY_MS, themeFor, todayNumber, untilNext } from '../daily';
 
 const ALL = CONTINENTS.map((c) => c.id as ContinentId);
 
@@ -20,7 +21,8 @@ export function Menu() {
   const startSelected = useStore((s) => s.startSelected);
   const tab = useStore((s) => s.picker);
   const custom = useStore((s) => s.custom);
-  const { setPicker, setCustom, startPool } = useStore.getState();
+  const section = useStore((s) => s.section);
+  const { setPicker, setCustom, startPool, setSection } = useStore.getState();
   const [deck, setDeck] = useState(() => loadDeck(mode));
   useEffect(() => setDeck(loadDeck(mode)), [mode]);
   const due = dueCodes(deck);
@@ -60,7 +62,7 @@ export function Menu() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (settingsOpen || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (settingsOpen || section !== 'learn' || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === 'Enter' && !(e.target as HTMLElement).closest('button, input, label')) {
         e.preventDefault();
         mapIt(false);
@@ -91,94 +93,116 @@ export function Menu() {
           </button>
         </header>
 
-        <section className="menu-section game-section" aria-labelledby="game-label">
-          <h2 className="eyebrow" id="game-label">
-            <span className="step-num">1</span> Game
-          </h2>
-          <ModeTabs
-            mode={mode}
-            onChange={(m) => {
-              setMode(m);
-              sfx.click();
-            }}
-          />
-          <p className="mode-desc">{MODES.find((m) => m.id === mode)!.blurb}</p>
-        </section>
-
-        <section className="menu-section region-section" aria-labelledby="region-label">
-          <div className="section-head">
-            <h2 className="eyebrow" id="region-label">
-              <span className="step-num">2</span> Countries
-            </h2>
-            {tab === 'map' && (
-              <button className="btn-ghost select-all" onClick={() => setSelection(allPicked ? [] : ALL)}>
-                {allPicked ? 'Clear all' : 'Select all'}
-              </button>
-            )}
-            {tab === 'custom' && custom.length > 0 && (
-              <button className="btn-ghost select-all" onClick={() => setCustom([])}>
-                Clear all
-              </button>
-            )}
-          </div>
-          <PickerTabs tab={tab} due={due.length} onChange={setPicker} />
-          {tab === 'map' && <RegionPicker ref={picker} selection={selection} onToggle={toggle} />}
-          {tab === 'custom' && <CountryList selected={custom} onChange={setCustom} />}
-          {tab === 'review' && (
-            <ReviewList
-              deck={deck}
-              onRemove={(code) => {
-                removeCard(mode, code);
-                setDeck(loadDeck(mode));
+        <nav className="section-nav" aria-label="Sections">
+          {(['daily', 'learn'] as const).map((id) => (
+            <button
+              key={id}
+              aria-current={section === id ? 'page' : undefined}
+              onClick={() => {
+                if (section === id) return;
                 sfx.click();
+                setSection(id);
               }}
-            />
-          )}
-        </section>
+            >
+              {id === 'daily' ? 'Daily' : 'Learn'}
+            </button>
+          ))}
+        </nav>
 
-        <div className="cta">
-          <p className="cta-summary" aria-live="polite">
-            {tab === 'custom' ? (
-              custom.length ? (
-                <>
-                  <b>Custom</b>
-                  <span>
-                    {custom.length} {custom.length === 1 ? 'country' : 'countries'}
-                  </span>
-                </>
-              ) : (
-                <span>Tick the countries to play</span>
-              )
-            ) : tab === 'review' ? (
-              due.length ? (
-                <>
-                  <b>Review</b>
-                  <span>{due.length} due</span>
-                </>
-              ) : inDeck.length ? (
-                <span>Nothing due. Play all {inDeck.length} early?</span>
-              ) : (
-                <span>Nothing to review yet</span>
-              )
-            ) : def ? (
-              <>
-                <Badge region={def} />
-                <b>{def.name}</b>
-                <span>{count} countries</span>
-                {best && (
-                  <span>
-                    Best {Math.round(best.score * 100)}% · {formatTime(best.time)}
-                  </span>
+        {section === 'daily' ? (
+          <DailyPanel />
+        ) : (
+          <>
+            <section className="menu-section game-section" aria-labelledby="game-label">
+              <h2 className="eyebrow" id="game-label">
+                <span className="step-num">1</span> Game
+              </h2>
+              <ModeTabs
+                mode={mode}
+                onChange={(m) => {
+                  setMode(m);
+                  sfx.click();
+                }}
+              />
+              <p className="mode-desc">{MODES.find((m) => m.id === mode)!.blurb}</p>
+            </section>
+
+            <section className="menu-section region-section" aria-labelledby="region-label">
+              <div className="section-head">
+                <h2 className="eyebrow" id="region-label">
+                  <span className="step-num">2</span> Countries
+                </h2>
+                {tab === 'map' && (
+                  <button className="btn-ghost select-all" onClick={() => setSelection(allPicked ? [] : ALL)}>
+                    {allPicked ? 'Clear all' : 'Select all'}
+                  </button>
                 )}
-              </>
-            ) : (
-              <span>Pick one or more regions on the map</span>
-            )}
-          </p>
-          <button className="btn map-it" disabled={!canStart} onClick={(e) => mapIt(e.detail > 0)}>
-            map it!
-          </button>
-        </div>
+                {tab === 'custom' && custom.length > 0 && (
+                  <button className="btn-ghost select-all" onClick={() => setCustom([])}>
+                    Clear all
+                  </button>
+                )}
+              </div>
+              <PickerTabs tab={tab} due={due.length} onChange={setPicker} />
+              {tab === 'map' && <RegionPicker ref={picker} selection={selection} onToggle={toggle} />}
+              {tab === 'custom' && <CountryList selected={custom} onChange={setCustom} />}
+              {tab === 'review' && (
+                <ReviewList
+                  deck={deck}
+                  onRemove={(code) => {
+                    removeCard(mode, code);
+                    setDeck(loadDeck(mode));
+                    sfx.click();
+                  }}
+                />
+              )}
+            </section>
+
+            <div className="cta">
+              <p className="cta-summary" aria-live="polite">
+                {tab === 'custom' ? (
+                  custom.length ? (
+                    <>
+                      <b>Custom</b>
+                      <span>
+                        {custom.length} {custom.length === 1 ? 'country' : 'countries'}
+                      </span>
+                    </>
+                  ) : (
+                    <span>Tick the countries to play</span>
+                  )
+                ) : tab === 'review' ? (
+                  due.length ? (
+                    <>
+                      <b>Review</b>
+                      <span>{due.length} due</span>
+                    </>
+                  ) : inDeck.length ? (
+                    <span>Nothing due. Play all {inDeck.length} early?</span>
+                  ) : (
+                    <span>Nothing to review yet</span>
+                  )
+                ) : def ? (
+                  <>
+                    <Badge region={def} />
+                    <b>{def.name}</b>
+                    <span>{count} countries</span>
+                    {best && (
+                      <span>
+                        Best {Math.round(best.score * 100)}% · {formatTime(best.time)}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span>Pick one or more regions on the map</span>
+                )}
+              </p>
+              <button className="btn map-it" disabled={!canStart} onClick={(e) => mapIt(e.detail > 0)}>
+                map it!
+              </button>
+            </div>
+          </>
+        )}
       </div>
       <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </main>
@@ -239,5 +263,67 @@ function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void 
         {render(true)}
       </div>
     </div>
+  );
+}
+
+/** Today's puzzle: its theme up front, the names only once playing. After a run, the time and the fact behind it. */
+function DailyPanel() {
+  const n = todayNumber();
+  const theme = themeFor(n);
+  const run = loadRun(n);
+  const streak = dailyStreak(n);
+  const date = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  const play = () => {
+    sfx.click();
+    useStore.getState().startDaily();
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !(e.target as HTMLElement).closest('button, input, label, dialog')) play();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  });
+  return (
+    <section className="daily-panel" aria-labelledby="daily-title">
+      <p className="eyebrow">
+        Daily #{n} <span className="daily-date">· {date}</span>
+      </p>
+      <h1 className="daily-headline" id="daily-title">
+        {theme.title}
+      </h1>
+      <p className="daily-how">
+        Find all <b>{theme.codes.length} countries</b> on the map, in any order, as fast as you can. Each wrong click adds{' '}
+        {PENALTY_MS / 1000} seconds.
+      </p>
+      {run && (
+        <div className="daily-run">
+          <div className="daily-run-stats">
+            <span>
+              <small>Your time</small>
+              <b className="figure">{formatTime(run.time)}</b>
+            </span>
+            <span>
+              <small>Misses</small>
+              <b className="figure">{run.misses}</b>
+            </span>
+          </div>
+          <p>{theme.fact}</p>
+        </div>
+      )}
+      <div className="daily-meta">
+        <span>
+          <small>Day streak</small>
+          <b className="figure">{streak}</b>
+        </span>
+        <span>
+          <small>Next puzzle in</small>
+          <b className="figure">{untilNext()}</b>
+        </span>
+      </div>
+      <button className="btn map-it daily-play" onClick={play}>
+        {run ? 'Play again' : 'Play today’s'}
+      </button>
+    </section>
   );
 }
