@@ -26,14 +26,29 @@ export class Game {
   private finishedAt: number | null = null;
   streak = 0;
   bestStreak = 0;
+  /** Wrong clicks in a free-order game, each adding `penaltyMs` to the time. */
+  misses = 0;
 
   constructor(
     readonly mode: Mode,
     /** Region key (see RegionDef.id), used for best scores. */
     readonly region: string,
     readonly pool: Country[],
+    /**
+     * The daily: every country is asked at once and can be found in any order. There are no tries to run out of;
+     * each wrong click adds this many ms to the time instead.
+     */
+    readonly penaltyMs = 0,
   ) {
     this.queue = shuffle([...pool]);
+  }
+
+  get freeOrder() {
+    return this.penaltyMs > 0;
+  }
+  /** The countries still to find, in a free-order game. */
+  get remaining(): readonly Country[] {
+    return this.queue;
   }
 
   get current(): Country | null {
@@ -46,7 +61,7 @@ export class Game {
     return this.current ? this.spent.get(this.current.code) ?? 0 : 0;
   }
   get elapsed() {
-    return (this.finishedAt ?? performance.now()) - this.startedAt;
+    return (this.finishedAt ?? performance.now()) - this.startedAt + this.misses * this.penaltyMs;
   }
   get answered() {
     return this.results.size;
@@ -67,6 +82,7 @@ export class Game {
   }
 
   answer(code: string): AnswerResult {
+    if (this.freeOrder) return this.answerAny(code);
     const target = this.current!;
     const attempts = this.attemptsUsed + 1;
     this.spent.set(target.code, attempts);
@@ -82,6 +98,20 @@ export class Game {
       return { kind: 'reveal' };
     }
     return { kind: 'wrong', attemptsLeft: MAX_ATTEMPTS - attempts };
+  }
+
+  private answerAny(code: string): AnswerResult {
+    const i = this.queue.findIndex((c) => c.code === code);
+    if (i < 0) {
+      this.misses++;
+      this.streak = 0;
+      return { kind: 'wrong', attemptsLeft: Infinity };
+    }
+    this.queue.unshift(...this.queue.splice(i, 1));
+    this.settle(1);
+    this.streak++;
+    this.bestStreak = Math.max(this.bestStreak, this.streak);
+    return { kind: 'correct', attempt: 1, streak: this.streak };
   }
 
   /** Moves the current country to the back of the queue. Attempts already spent on it still count. */
