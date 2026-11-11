@@ -266,7 +266,7 @@ function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void 
   );
 }
 
-/** Today's puzzle: its theme up front, the names only once playing. After a run, the time and the fact behind it. */
+/** Today's puzzle. The link stays secret until it's been played and guessed at; then the time, the answer and its fact. */
 function DailyPanel() {
   const n = todayNumber();
   const theme = themeFor(n);
@@ -290,11 +290,11 @@ function DailyPanel() {
         Daily #{n} <span className="daily-date">· {date}</span>
       </p>
       <h1 className="daily-headline" id="daily-title">
-        {theme.title}
+        {theme.codes.length} countries with something in common
       </h1>
       <p className="daily-how">
-        Find all <b>{theme.codes.length} countries</b> on the map, in any order, as fast as you can. Each wrong click adds{' '}
-        {PENALTY_MS / 1000} seconds.
+        Find them one at a time, as fast as you can: each wrong click adds {PENALTY_MS / 1000} seconds. Then guess what
+        links them.
       </p>
       {run && (
         <div className="daily-run">
@@ -307,7 +307,12 @@ function DailyPanel() {
               <small>Misses</small>
               <b className="figure">{run.misses}</b>
             </span>
+            <span>
+              <small>The link</small>
+              <b className="figure">{run.guess === 'right' ? 'Guessed' : 'Missed'}</b>
+            </span>
           </div>
+          <h2 className="daily-answer-title">{theme.title}</h2>
           <p>{theme.fact}</p>
         </div>
       )}

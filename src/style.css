@@ -3075,60 +3075,6 @@ kbd {
   margin: 28px 0 24px;
 }
 
-/* The daily's card: theme over a checklist that ticks off in any order. */
-.daily-ticket .daily-theme {
-  font-weight: 900;
-  font-size: 19px;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-
-.daily-list {
-  display: grid;
-  gap: 6px;
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.daily-list li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 14px;
-  transition: color 200ms;
-}
-
-.daily-list i {
-  flex: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 2px var(--rule-2);
-  transition: background 200ms, box-shadow 200ms;
-}
-
-.daily-list li.found {
-  color: var(--mute);
-  text-decoration: line-through;
-  text-decoration-color: var(--c1);
-  text-decoration-thickness: 2px;
-}
-
-.daily-list li.found i {
-  background: var(--c1);
-  box-shadow: none;
-  animation: tick-in 300ms var(--ease-back);
-}
-
-@keyframes tick-in {
-  from {
-    transform: scale(0.4);
-  }
-}
-
 .daily-rule {
   margin: 12px 0 0;
   font-family: var(--f-mono);
@@ -3139,28 +3085,185 @@ kbd {
   color: var(--mute);
 }
 
-.daily-time {
-  font-size: 72px;
+.daily-answer-title {
+  margin: 16px 0 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
-.daily-fact {
+.daily-run .daily-answer-title + p {
+  margin-top: 6px;
+}
+
+/* ---------- Daily results: the countries, the guess, the answer ---------- */
+
+.daily-found {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.daily-found li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px 5px 5px;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--panel-2);
+  border-radius: 999px;
+}
+
+.daily-found img {
+  width: 22px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.guess {
+  margin-top: 22px;
+}
+
+.guess label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.guess-row {
+  display: flex;
+  gap: 8px;
+}
+
+.guess-row input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--white);
+  background: var(--panel-2);
+  border: 0;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px var(--rule-2);
+  outline: none;
+  transition: box-shadow 150ms;
+}
+
+.guess-row input:focus {
+  box-shadow: inset 0 0 0 2px var(--white);
+}
+
+.guess-row .btn {
+  height: 48px;
+  padding: 0 20px;
+}
+
+.guess-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-top: 12px;
+}
+
+.guess-tries {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.guess-tries li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  animation: name-in 250ms var(--ease-out);
+}
+
+.guess-tries span {
+  flex: none;
+  padding: 2px 6px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000;
+  background: var(--red);
+  border-radius: 4px;
+}
+
+.guess-tries .close span {
+  background: var(--c2);
+}
+
+.guess-left {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.linkish {
+  padding: 0;
+  font-weight: 700;
+  color: var(--white);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+}
+
+.daily-answer {
   margin-top: 22px;
   padding: 16px 18px;
   background: var(--panel-2);
   border-radius: 12px;
+  box-shadow: inset 4px 0 0 var(--mute);
+  animation: name-in 300ms var(--ease-out);
 }
 
-.daily-fact h3 {
+.daily-answer.right {
+  box-shadow: inset 4px 0 0 var(--c1);
+}
+
+.daily-verdict {
+  margin: 0 0 4px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.daily-answer.right .daily-verdict {
+  color: var(--c1);
+}
+
+.daily-answer h3 {
   margin: 0 0 6px;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
 }
 
-.daily-fact p {
+.daily-answer p:last-child {
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--white);
   text-wrap: pretty;
 }
 
@@ -3177,20 +3280,4 @@ kbd {
     padding-top: 32px;
   }
 
-  /* On phones the daily's card sits at the bottom: two columns keep the list short. */
-  #play .daily-ticket {
-    display: block;
-    right: 66px;
-  }
-
-  .daily-list {
-    grid-template-columns: 1fr 1fr;
-    gap: 4px 10px;
-    margin-top: 8px;
-  }
-
-  .daily-list li {
-    font-size: 12px;
-    min-width: 0;
-  }
 }

@@ -274,8 +274,7 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
   const el = useRef<HTMLDivElement | null>(null);
   const { game, pending, finished } = session;
   const current = pending ?? game.current;
-  // The daily's card stays put while its list ticks off; the others deal a new card per question.
-  const promptKey = finished ? 'done' : session.daily ? 'daily' : `${game.answered}:${current?.code}:${pending ? 'reveal' : ''}`;
+  const promptKey = finished ? 'done' : `${game.answered}:${current?.code}:${pending ? 'reveal' : ''}`;
 
   // Replay a CSS animation by removing its class and forcing a reflow before adding it back.
   const replay = (cls: string) => {
@@ -311,7 +310,6 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
       </div>
     );
 
-  if (session.daily && !finished) return <DailyTicket ref={setRef} session={session} />;
   if (!current) return <div ref={setRef} className="ticket" />;
   if (game.mode === 'pick') return <PickTicket ref={setRef} session={session} target={current} />;
   const flagOnly = game.mode === 'flag';
@@ -340,7 +338,7 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
   return (
     <div ref={setRef} className="ticket" aria-live="polite">
       <div className="ticket-label">
-        <span>{flagOnly ? 'Whose flag?' : 'Find'}</span>
+        <span>{session.daily ? `Daily #${session.daily.n}` : flagOnly ? 'Whose flag?' : 'Find'}</span>
         <span className="ticket-count">
           {game.answered + 1} / {game.pool.length}
         </span>
@@ -349,42 +347,21 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
         <img className="flag" src={current.flag} alt={flagOnly ? 'Flag to find' : `Flag of ${current.name}`} draggable={false} />
         {flagOnly ? <div className="ticket-name unknown">?</div> : <div className="ticket-name">{current.name}</div>}
       </div>
-      <div className="ticket-foot">
-        <span className="pips" aria-label="Attempts">
-          {Array.from({ length: MAX_ATTEMPTS }, (_, i) => (
-            <i key={i} className={i < game.attemptsUsed ? 'used' : ''} />
-          ))}
-        </span>
-        <button className="btn-ghost" id="skip" disabled={game.pool.length - game.answered < 2} onClick={() => useStore.getState().skip()}>
-          Skip <kbd>S</kbd>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/** The daily's card: the theme, and every country to find, ticked off as they're found in any order. */
-function DailyTicket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElement> }) {
-  const { game, daily } = session;
-  const list = [...game.pool].sort((a, b) => a.name.localeCompare(b.name));
-  return (
-    <div ref={ref} className="ticket daily-ticket" aria-live="polite">
-      <div className="ticket-label">
-        <span>Daily #{daily!.n}</span>
-        <span className="ticket-count">
-          {game.answered} / {game.pool.length}
-        </span>
-      </div>
-      <div className="daily-theme">{daily!.theme.title}</div>
-      <ul className="daily-list">
-        {list.map((c) => (
-          <li key={c.code} className={game.results.has(c.code) ? 'found' : ''}>
-            <i aria-hidden="true" />
-            {c.name}
-          </li>
-        ))}
-      </ul>
-      <p className="daily-rule">Any order · wrong click +{PENALTY_MS / 1000}s</p>
+      {session.daily ? (
+        // The daily has no tries or skipping: a country stays until it's found, and misses cost time.
+        <p className="daily-rule">Wrong click +{PENALTY_MS / 1000}s</p>
+      ) : (
+        <div className="ticket-foot">
+          <span className="pips" aria-label="Attempts">
+            {Array.from({ length: MAX_ATTEMPTS }, (_, i) => (
+              <i key={i} className={i < game.attemptsUsed ? 'used' : ''} />
+            ))}
+          </span>
+          <button className="btn-ghost" id="skip" disabled={game.pool.length - game.answered < 2} onClick={() => useStore.getState().skip()}>
+            Skip <kbd>S</kbd>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

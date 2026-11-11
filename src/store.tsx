@@ -38,7 +38,7 @@ export interface Session {
   record: boolean;
   /** A friend's score to beat, from a shared link for this same round. */
   challenge: Challenge | null;
-  /** The daily puzzle this round plays, if it is one; `first` when it's the day's first try and so the one kept. */
+  /** The daily puzzle this round plays, if it is one; `first` when it's the day's first run, the one kept and guessed on. */
   daily: { n: number; theme: Theme; first: boolean } | null;
   resultsOpen: boolean;
 }
@@ -377,6 +377,7 @@ export const useStore = create<State>()((set, get) => {
         return;
       }
       if (s.daily) {
+        const target = game.current!;
         const r = game.answer(code);
         if (r.kind === 'correct') {
           map.paint(code, 'c1');
@@ -385,20 +386,22 @@ export const useStore = create<State>()((set, get) => {
           clearTimeout(toastTimer);
           set({ toast: null });
           advance();
-        } else {
-          map.flash(code);
-          map.miss(at);
-          sfx.wrong();
-          navigator.vibrate?.(35);
-          shake();
-          toast(
-            <>
-              That's {shape.name}. <small>+{PENALTY_MS / 1000}s</small>
-            </>,
-            'bad',
-          );
-          bump();
+          return;
         }
+        map.flash(code);
+        map.miss(at);
+        sfx.wrong();
+        navigator.vibrate?.(35);
+        shake();
+        const hint = map.pointToward(at, target.code);
+        const where = hint ? `${hint.km ? `${hint.km.toLocaleString()} km ` : ''}${hint.dir}` : '';
+        toast(
+          <>
+            That's {shape.name}. <small>+{PENALTY_MS / 1000}s{where ? ` · ${target.name} is ${where}` : ''}</small>
+          </>,
+          'bad',
+        );
+        bump();
         return;
       }
       const target = game.current!;

@@ -5,7 +5,7 @@ import { formatTime, type Outcome } from '../game';
 import { beats, describe, runOf, shareScore, shareText } from '../share';
 import { useStore } from '../store';
 import { Badge, Dialog, modeTitle, RANKS } from './shared';
-import { dailyShareText, dailyStreak, loadRun, untilNext } from '../daily';
+import { dailyShareText, dailyStreak, judgeGuess, loadRun, saveGuess, untilNext } from '../daily';
 
 function Swatch({ country, outcome }: { country: Country; outcome: Outcome }) {
   if (outcome === 0) return <i className="swatch missed" />;
@@ -140,25 +140,50 @@ export function Results() {
   );
 }
 
-/** The daily's results: the time with penalties, the fun fact behind the theme, and when the next one comes. */
+const GUESSES = 3;
+
+/**
+ * The daily's results, in two steps. First the guess: what links the countries just found? Free text, up to three
+ * tries, judged by judgeGuess. Then the answer and its fun fact, with the time, the streak and sharing.
+ * Replays skip the guess: the answer is already known.
+ */
 function DailyResults() {
   const session = useStore((s) => s.session)!;
   const { goMenu, setResultsOpen, startDaily } = useStore.getState();
   const { game: g, daily, resultsOpen } = session;
   const { n, theme, first } = daily!;
   const [shared, setShared] = useState<'copied' | 'failed' | null>(null);
+  const [text, setText] = useState('');
+  const [tries, setTries] = useState<{ guess: string; verdict: 'close' | 'wrong' }[]>([]);
+  const [verdict, setVerdict] = useState<'right' | 'wrong' | null>(() => (first ? null : loadRun(n)?.guess ?? 'wrong'));
   const resetTimer = useRef(0);
   useEffect(() => () => clearTimeout(resetTimer.current), []);
   // The day's first run is the one that counts and gets shared; a replay just shows how it went.
   const kept = loadRun(n) ?? { time: g.elapsed, misses: g.misses };
-  const penalty = (g.misses * g.penaltyMs) / 1000;
   const act = (fn: () => void) => () => {
     sfx.click();
     fn();
   };
+  const settle = (v: 'right' | 'wrong') => {
+    setVerdict(v);
+    saveGuess(n, v);
+    if (v === 'right') sfx.finish();
+  };
+  const onGuess = (e: React.FormEvent) => {
+    e.preventDefault();
+    const guess = text.trim();
+    if (!guess) return;
+    const v = judgeGuess(theme, guess);
+    if (v === 'right') return settle('right');
+    sfx.wrong();
+    const next = [...tries, { guess, verdict: v }];
+    setTries(next);
+    setText('');
+    if (next.length >= GUESSES) settle('wrong');
+  };
   const onShare = async () => {
     sfx.click();
-    const outcome = await shareScore(dailyShareText(n, theme, kept, g.pool.length));
+    const outcome = await shareScore(dailyShareText(n, { ...kept, guess: verdict ?? undefined }, g.pool.length));
     if (outcome !== 'copied' && outcome !== 'failed') return;
     setShared(outcome);
     clearTimeout(resetTimer.current);
@@ -173,57 +198,98 @@ function DailyResults() {
             <span className="res-kicker">
               <span>Daily #{n}</span>
               <span className="sep">/</span>
-              <span>{g.pool.length} countries</span>
+              <span>
+                {formatTime(g.elapsed)} · {g.misses ? `${g.misses} ${g.misses === 1 ? 'miss' : 'misses'}` : 'no misses'}
+              </span>
             </span>
-            <button className={`share-btn${shared ? ` ${shared}` : ''}`} onClick={onShare} aria-live="polite">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 15V3M7 8l5-5 5 5M5 13v7h14v-7" />
-              </svg>
-              <span>{shared === 'copied' ? 'Copied' : shared === 'failed' ? 'Copy failed' : 'Share'}</span>
-            </button>
+            {verdict && (
+              <button className={`share-btn${shared ? ` ${shared}` : ''}`} onClick={onShare} aria-live="polite">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 15V3M7 8l5-5 5 5M5 13v7h14v-7" />
+                </svg>
+                <span>{shared === 'copied' ? 'Copied' : shared === 'failed' ? 'Copy failed' : 'Share'}</span>
+              </button>
+            )}
           </header>
-          <div className="res-hero">
-            <div className="res-score daily-time">{formatTime(g.elapsed)}</div>
-            <div className="res-badges">
-              <div className="rank-stamp">{g.misses ? `${g.misses} ${g.misses === 1 ? 'miss' : 'misses'}` : 'No misses'}</div>
-            </div>
-          </div>
-          {!first && (
-            <p className="res-challenge">
-              <span>Replay</span>
-              Your first run today, {formatTime(kept.time)}, is the one that counts.
-            </p>
+          <ul className="daily-found">
+            {g.pool.map((c) => (
+              <li key={c.code}>
+                <img src={c.flag} alt="" />
+                {c.name}
+              </li>
+            ))}
+          </ul>
+          {verdict === null ? (
+            <form className="guess" onSubmit={onGuess}>
+              <label htmlFor="guess-input">What links these {g.pool.length} countries?</label>
+              <div className="guess-row">
+                <input
+                  id="guess-input"
+                  autoComplete="off"
+                  autoFocus
+                  placeholder="Your guess"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  maxLength={120}
+                />
+                <button className="btn" disabled={!text.trim()}>
+                  Guess
+                </button>
+              </div>
+              <div className="guess-foot">
+                <ul className="guess-tries" aria-live="polite">
+                  {tries.map((t, i) => (
+                    <li key={i} className={t.verdict}>
+                      <span>{t.verdict === 'close' ? 'Close' : 'No'}</span>
+                      {t.guess}
+                    </li>
+                  ))}
+                </ul>
+                <span className="guess-left">
+                  {GUESSES - tries.length} {GUESSES - tries.length === 1 ? 'guess' : 'guesses'} left ·{' '}
+                  <button type="button" className="linkish" onClick={() => settle('wrong')}>
+                    Give up
+                  </button>
+                </span>
+              </div>
+            </form>
+          ) : (
+            <section className={`daily-answer ${verdict}`}>
+              <p className="daily-verdict">{first ? (verdict === 'right' ? 'You got it' : 'The link was') : 'The link'}</p>
+              <h3>{theme.title}</h3>
+              <p>{theme.fact}</p>
+            </section>
           )}
-          <section className="daily-fact">
-            <h3>{theme.title}</h3>
-            <p>{theme.fact}</p>
-          </section>
-          <dl className="res-stats">
-            <div>
-              <dt>Penalty</dt>
-              <dd>+{penalty}s</dd>
-            </div>
-            <div>
-              <dt>Day streak</dt>
-              <dd>{dailyStreak()}</dd>
-            </div>
-            <div>
-              <dt>Next in</dt>
-              <dd className="next-in">{untilNext()}</dd>
-            </div>
-          </dl>
+          {verdict && (
+            <dl className="res-stats">
+              <div>
+                <dt>{first ? 'Time' : 'First run'}</dt>
+                <dd>{formatTime(kept.time)}</dd>
+              </div>
+              <div>
+                <dt>Day streak</dt>
+                <dd>{dailyStreak()}</dd>
+              </div>
+              <div>
+                <dt>Next in</dt>
+                <dd className="next-in">{untilNext()}</dd>
+              </div>
+            </dl>
+          )}
         </div>
-        <footer className="res-actions no-retry">
-          <button className="btn" data-act="again" onClick={act(startDaily)}>
-            Play again
-          </button>
-          <button className="btn alt" data-act="map" onClick={act(() => setResultsOpen(false))}>
-            Map
-          </button>
-          <button className="btn alt" data-act="menu" onClick={act(goMenu)}>
-            Menu
-          </button>
-        </footer>
+        {verdict && (
+          <footer className="res-actions no-retry">
+            <button className="btn" data-act="again" onClick={act(startDaily)}>
+              Play again
+            </button>
+            <button className="btn alt" data-act="map" onClick={act(() => setResultsOpen(false))}>
+              Map
+            </button>
+            <button className="btn alt" data-act="menu" onClick={act(goMenu)}>
+              Menu
+            </button>
+          </footer>
+        )}
       </div>
     </Dialog>
   );
