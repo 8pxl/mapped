@@ -319,16 +319,12 @@ export const useStore = create<State>()((set, get) => {
         else sfx.late();
         if (r.attempt === 1 && isComboMilestone(r.streak)) {
           sfx.combo(r.streak);
-          // With reduced motion the toast's "streak ×N" says it instead.
+          // With reduced motion the HUD's streak count says it instead.
           if (!matchMedia('(prefers-reduced-motion: reduce)').matches) map.combo(at, r.streak);
         }
-        toast(
-          <>
-            {target.name}
-            {r.attempt === 1 && r.streak >= 3 && <small> streak ×{r.streak}</small>}
-          </>,
-          'good',
-        );
+        // No toast for a find: the stamp says it. Clear a leftover miss message so it doesn't linger.
+        clearTimeout(toastTimer);
+        set({ toast: null });
         advance();
       } else if (r.kind === 'wrong') {
         map.flash(code);
