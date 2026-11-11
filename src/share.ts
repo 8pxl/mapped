@@ -49,7 +49,7 @@ function outcomes(g: Game) {
 export function shareUrl(def: RegionDef, mode: Mode, g: Game) {
   const { score, seconds } = runOf(g);
   const params = new URLSearchParams();
-  if (mode === 'flag') params.set('mode', 'flag');
+  if (mode !== 'name') params.set('mode', mode);
   params.set('vs', `${score}-${seconds}`);
   return `${location.origin}/${def.id}?${params}`;
 }

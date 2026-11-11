@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useReducer, useRef } from 'react';
+import type { Country } from '../data';
 import { formatTime, MAX_ATTEMPTS } from '../game';
 import { MapView } from '../map';
-import { registerMap, useStore, type Session, type Toast } from '../store';
+import { choicesFor, registerMap, useStore, type Session, type Toast } from '../store';
 import { Results } from './Results';
 import { Badge, modeTitle } from './shared';
 
@@ -41,8 +42,10 @@ export function Play() {
         return;
       }
       const found = active && s.game.results.has(shape.code!);
-      const show = !active || found || hints || s.finished;
-      playEl.classList.toggle('pointing', (active && !found) || shape.code === s.pending?.code);
+      // Pick the flag asks about flags, not places, so naming countries on the map gives nothing away.
+      const browsing = s.game.mode === 'pick';
+      const show = !active || found || hints || s.finished || browsing;
+      playEl.classList.toggle('pointing', !browsing && ((active && !found) || shape.code === s.pending?.code));
       tip.hidden = !show;
       if (!show) return;
       tip.textContent = shape.name;
@@ -235,6 +238,7 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
     );
 
   if (!current) return <div ref={setRef} className="ticket" />;
+  if (game.mode === 'pick') return <PickTicket ref={setRef} session={session} target={current} />;
   const flagOnly = game.mode === 'flag';
 
   if (pending)
@@ -284,6 +288,63 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
   );
 }
 
+/** Pick the flag's card: the country's name over its flag and five others. Keys 1-6 pick too (see useKeys). */
+function PickTicket({ session, target, ref }: { session: Session; target: Country; ref: React.Ref<HTMLDivElement> }) {
+  const { game, pending } = session;
+  const { choices, struck } = choicesFor(session, target);
+  const pick = (code: string) => useStore.getState().pickFlag(code);
+  return (
+    <div ref={ref} className={`ticket${pending ? ' missed' : ''}`} aria-live="polite">
+      <div className="ticket-label">
+        {pending ? (
+          <span className="ticket-alert">Missed · pick it to continue</span>
+        ) : (
+          <>
+            <span>Pick the flag</span>
+            <span className="ticket-count">
+              {game.answered + 1} / {game.pool.length}
+            </span>
+          </>
+        )}
+      </div>
+      <div className="ticket-name">{target.name}</div>
+      <div className="flag-choices">
+        {choices.map((c, i) => {
+          const isAnswer = !!pending && c.code === target.code;
+          const out = struck.has(c.code);
+          return (
+            <button
+              key={c.code}
+              className={`flag-choice${out ? ' struck' : ''}${isAnswer ? ' answer' : ''}`}
+              disabled={out}
+              onClick={() => pick(c.code)}
+              // Name a struck flag: it was a wrong answer, so saying whose it is helps. The rest stay unnamed.
+              aria-label={out ? `${c.name}, wrong` : `Flag ${i + 1}`}
+            >
+              <img className="flag" src={c.flag} alt="" draggable={false} />
+              <kbd className="pointer-only">{i + 1}</kbd>
+            </button>
+          );
+        })}
+      </div>
+      <div className="ticket-foot">
+        <span className="pips" aria-label="Attempts">
+          {Array.from({ length: MAX_ATTEMPTS }, (_, i) => (
+            <i key={i} className={pending || i < game.attemptsUsed ? 'used' : ''} />
+          ))}
+        </span>
+        {pending ? (
+          <span className="ticket-hint">It's flashing</span>
+        ) : (
+          <button className="btn-ghost" id="skip" disabled={game.pool.length - game.answered < 2} onClick={() => useStore.getState().skip()}>
+            Skip <kbd>S</kbd>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** The status line. It stays mounted so it can fade out still showing its last message. */
 function ToastView() {
   const toast = useStore((s) => s.toast);
@@ -310,6 +371,13 @@ function useKeys(viewRef: React.RefObject<MapView | null>) {
         if (!e.repeat) view?.pickAtPointer();
       }
       if (e.key === 's' || e.key === 'S') skip();
+      // Pick the flag: 1-6 pick the flags in the order shown.
+      const n = Number(e.key);
+      if (session.game.mode === 'pick' && n >= 1 && !e.repeat) {
+        const target = session.pending ?? session.game.current;
+        const choice = target && choicesFor(session, target).choices[n - 1];
+        if (choice) useStore.getState().pickFlag(choice.code);
+      }
       if (e.key === '+' || e.key === '=') view?.zoomBy(1.8);
       if (e.key === '-') view?.zoomBy(1 / 1.8);
       if (e.key === '0') view?.resetZoom();

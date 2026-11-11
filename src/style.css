@@ -998,6 +998,10 @@ kbd {
   background: #1f9d55;
 }
 
+.route-pick {
+  background: #2f6fe8;
+}
+
 /* ---------- Settings ---------- */
 
 .settings {
@@ -1844,6 +1848,95 @@ kbd {
   width: 290px;
 }
 
+/* ---------- Pick the flag ---------- */
+
+#play[data-mode='pick'] .ticket {
+  width: 300px;
+}
+
+#play[data-mode='pick'] .ticket-name {
+  margin: 0 0 12px;
+}
+
+.flag-choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.flag-choice {
+  position: relative;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  transition: transform 160ms var(--ease-out);
+}
+
+.flag-choice .flag {
+  transition: box-shadow 160ms var(--ease-out), opacity 200ms, filter 200ms;
+}
+
+@media (hover: hover) {
+  .flag-choice:not(:disabled):hover .flag {
+    box-shadow: 0 0 0 2px var(--white);
+  }
+}
+
+.flag-choice:not(:disabled):active {
+  transform: scale(0.96);
+}
+
+.flag-choice kbd {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  color: #fff;
+  background: #000000b0;
+  border-color: #ffffff60;
+  opacity: 1;
+}
+
+/* A wrong pick: greyed out and crossed, so it can't be picked twice. */
+.flag-choice.struck {
+  cursor: default;
+}
+
+.flag-choice.struck .flag {
+  opacity: 0.22;
+  filter: grayscale(1);
+}
+
+.flag-choice.struck::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top right, transparent calc(50% - 1.5px), var(--red) calc(50% - 1.5px), var(--red) calc(50% + 1.5px), transparent calc(50% + 1.5px));
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.flag-choice.struck kbd {
+  display: none;
+}
+
+/* After three misses: the right flag blinks in red, the rest fade back. */
+.ticket.missed .flag-choice:not(.answer) .flag {
+  opacity: 0.22;
+}
+
+.flag-choice.answer .flag {
+  box-shadow: 0 0 0 3px var(--red);
+  animation: blink-ring 0.9s steps(1) infinite;
+}
+
+@keyframes blink-ring {
+  50% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
 .ticket.deal {
   animation: deal 0.42s var(--ease-back);
 }
@@ -2623,6 +2716,27 @@ kbd {
     grid-template-columns: 150px 1fr;
   }
 
+  /* Pick the flag stacks instead: name, then two rows of three flags. */
+  #play[data-mode='pick'] .ticket {
+    display: block;
+    width: auto;
+  }
+
+  #play[data-mode='pick'] .ticket-name {
+    margin-bottom: 10px;
+  }
+
+  .flag-choices {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  #play[data-mode='pick'] .ticket-foot {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 10px;
+  }
+
   .ticket-foot {
     grid-column: 2;
     flex-direction: column;
@@ -2768,5 +2882,24 @@ kbd {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Three game tabs don't fit a phone in a row: three equal columns, the badge above the name. */
+@media (max-width: 520px) {
+  .mode-tabs,
+  .mode-tabs-active {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+  }
+
+  .mode-tab {
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 6px 9px;
+    font-size: 12px;
+    white-space: normal;
+    text-align: center;
   }
 }

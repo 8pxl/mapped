@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { create } from 'zustand';
 import { isMuted, setMuted, sfx } from './audio';
-import { countriesFor, countryByCode, type Country } from './data';
-import { Game, isComboMilestone, saveBest, type Mode, type Outcome } from './game';
+import { COUNTRIES, countriesFor, countryByCode, type Country } from './data';
+import { flagChoices, Game, isComboMilestone, parseMode, saveBest, type Mode, type Outcome } from './game';
 import type { MapView, Paint, PickEvent } from './map';
 import { readPref, writePref } from './prefs';
 import { dueCodes, loadDeck, recordOutcome } from './review';
@@ -83,6 +83,8 @@ interface State {
   goMenu: () => void;
   applyRoute: () => void;
   pick: (e: PickEvent) => void;
+  /** An answer in Pick the flag: the country whose flag was picked. */
+  pickFlag: (code: string) => void;
   skip: () => void;
   showToast: (content: ReactNode, tone?: Toast['tone']) => void;
   setResultsOpen: (open: boolean) => void;
@@ -95,10 +97,21 @@ export const registerMap = (m: MapView | null) => {
 };
 export const getMap = () => map;
 
+/** Pick the flag's choices per question, and the wrong ones already picked. Kept per game, so a skipped question
+ * comes back with the same flags and its misses still struck out. */
+const choiceCache = new WeakMap<Game, Map<string, { choices: Country[]; struck: Set<string> }>>();
+export function choicesFor(s: Session, target: Country) {
+  let byCode = choiceCache.get(s.game);
+  if (!byCode) choiceCache.set(s.game, (byCode = new Map()));
+  let entry = byCode.get(target.code);
+  if (!entry) byCode.set(target.code, (entry = { choices: flagChoices(target, s.field, COUNTRIES), struck: new Set() }));
+  return entry;
+}
+
 let toastTimer = 0;
 let toastId = 0;
 
-export const routeUrl = (region: RegionDef, mode: Mode) => `/${region.id}${mode === 'flag' ? '?mode=flag' : ''}`;
+export const routeUrl = (region: RegionDef, mode: Mode) => `/${region.id}${mode !== 'name' ? `?mode=${mode}` : ''}`;
 
 const ALL = CONTINENTS.map((c) => c.id as ContinentId);
 
@@ -137,7 +150,7 @@ export const useStore = create<State>()((set, get) => {
   };
 
   return {
-    mode: (readPref('mode') as Mode) || 'name',
+    mode: parseMode(readPref('mode')),
     hints: readPref('hints') === '1',
     selection: savedSelection(),
     picker: (['map', 'custom', 'review'] as const).find((t) => t === readPref('picker')) ?? 'map',
@@ -176,7 +189,7 @@ export const useStore = create<State>()((set, get) => {
       if (!round) return;
       const { mode } = get();
       const params = new URLSearchParams();
-      if (mode === 'flag') params.set('mode', 'flag');
+      if (mode !== 'name') params.set('mode', mode);
       if (kind === 'custom') params.set('c', round.pool.map((c) => c.code).join(','));
       const query = params.toString().replace(/%2C/g, ',');
       history.pushState({ fromMenu: true }, '', `/${kind}${query ? `?${query}` : ''}`);
@@ -235,7 +248,7 @@ export const useStore = create<State>()((set, get) => {
       const key = decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, ''));
       const params = new URLSearchParams(location.search);
       if (key === 'custom' || key === 'review') {
-        const mode: Mode = params.get('mode') === 'flag' ? 'flag' : 'name';
+        const mode = parseMode(params.get('mode'));
         if (mode !== get().mode) get().setMode(mode);
         const deck = loadDeck(mode);
         const codes = key === 'custom' ? (params.get('c') ?? '').split(',') : dueCodes(deck).length ? dueCodes(deck) : Object.keys(deck);
@@ -252,7 +265,7 @@ export const useStore = create<State>()((set, get) => {
         toMenu();
         return;
       }
-      const mode: Mode = params.get('mode') === 'flag' ? 'flag' : 'name';
+      const mode = parseMode(params.get('mode'));
       if (mode !== get().mode) get().setMode(mode);
       set({ challenge: parseChallenge(params, def.id, mode) });
       get().start(def, countriesFor(def), true);
@@ -264,6 +277,12 @@ export const useStore = create<State>()((set, get) => {
       const { game } = s;
       const toast = get().showToast;
       const shake = () => set((st) => ({ shake: st.shake + 1 }));
+
+      // In Pick the flag the map is for looking: answers are flags on the card. A tap names what it hit.
+      if (game.mode === 'pick') {
+        if (shape.name) toast(<>{shape.name}</>);
+        return;
+      }
 
       if (s.pending) {
         if (shape.code !== s.pending.code) {
@@ -361,6 +380,90 @@ export const useStore = create<State>()((set, get) => {
         patchSession({ pending: target });
         bump();
       }
+    },
+
+    pickFlag: (code) => {
+      const s = get().session;
+      if (!s || !map || s.finished) return;
+      const { game } = s;
+      const toast = get().showToast;
+      const shake = () => set((st) => ({ shake: st.shake + 1 }));
+      const picked = countryByCode.get(code)!;
+
+      if (s.pending) {
+        if (code !== s.pending.code) {
+          toast(
+            <>
+              That's {picked.name}'s flag. <small>Pick the flashing one</small>
+            </>,
+            'bad',
+          );
+          shake();
+          return;
+        }
+        map.clearReveal();
+        const at = map.centroidOf(code);
+        if (at) map.stamp(at, code, 'missed');
+        sfx.click();
+        toast(
+          <>
+            {s.pending.name} <small>noted for review</small>
+          </>,
+        );
+        patchSession({ pending: null });
+        advance();
+        return;
+      }
+      if (game.done) return;
+      const target = game.current!;
+      const { struck } = choicesFor(s, target);
+      if (struck.has(code)) return;
+      const r = game.answer(code);
+      if (r.kind === 'correct') {
+        recordOutcome(game.mode, code, r.attempt as Outcome, !get().hints);
+        const paint = PAINT_FOR[r.attempt as Outcome];
+        map.paint(code, paint);
+        const at = map.centroidOf(code);
+        if (at) map.stamp(at, code, paint);
+        if (r.attempt === 1) sfx.correct(r.streak);
+        else sfx.late();
+        if (r.attempt === 1 && isComboMilestone(r.streak)) {
+          sfx.combo(r.streak);
+          if (at && !matchMedia('(prefers-reduced-motion: reduce)').matches) map.combo(at, r.streak);
+        }
+        clearTimeout(toastTimer);
+        set({ toast: null });
+        advance();
+        return;
+      }
+      struck.add(code);
+      // Light up the country the wrong flag belongs to, so the miss teaches something.
+      map.flash(code);
+      shake();
+      if (r.kind === 'wrong') {
+        sfx.wrong();
+        navigator.vibrate?.(35);
+        toast(
+          <>
+            That's {picked.name}. <small>{`${r.attemptsLeft} ${r.attemptsLeft === 1 ? 'try' : 'tries'} left`}</small>
+          </>,
+          'bad',
+        );
+        bump();
+        return;
+      }
+      recordOutcome(game.mode, target.code, 0);
+      map.paint(target.code, 'missed');
+      map.reveal(target.code);
+      sfx.reveal();
+      toast(
+        <>
+          That's {picked.name}. <b>{target.name}</b> <small>is the flashing flag, pick it</small>
+        </>,
+        'bad',
+      );
+      patchSession({ pending: target });
+      bump();
     },
 
     skip: () => {
