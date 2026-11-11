@@ -26,7 +26,7 @@ export class Game {
   private finishedAt: number | null = null;
   streak = 0;
   bestStreak = 0;
-  /** Wrong clicks in a free-order game, each adding `penaltyMs` to the time. */
+  /** Wrong clicks in a timed game, each adding `penaltyMs` to the time. */
   misses = 0;
 
   constructor(
@@ -35,20 +35,16 @@ export class Game {
     readonly region: string,
     readonly pool: Country[],
     /**
-     * The daily: every country is asked at once and can be found in any order. There are no tries to run out of;
-     * each wrong click adds this many ms to the time instead.
+     * The daily, a race against the clock: there are no tries to run out of, each wrong click adds this many ms to
+     * the time instead, and a country stays asked until it's found.
      */
     readonly penaltyMs = 0,
   ) {
     this.queue = shuffle([...pool]);
   }
 
-  get freeOrder() {
+  get timed() {
     return this.penaltyMs > 0;
-  }
-  /** The countries still to find, in a free-order game. */
-  get remaining(): readonly Country[] {
-    return this.queue;
   }
 
   get current(): Country | null {
@@ -82,7 +78,7 @@ export class Game {
   }
 
   answer(code: string): AnswerResult {
-    if (this.freeOrder) return this.answerAny(code);
+    if (this.timed) return this.answerTimed(code);
     const target = this.current!;
     const attempts = this.attemptsUsed + 1;
     this.spent.set(target.code, attempts);
@@ -100,14 +96,12 @@ export class Game {
     return { kind: 'wrong', attemptsLeft: MAX_ATTEMPTS - attempts };
   }
 
-  private answerAny(code: string): AnswerResult {
-    const i = this.queue.findIndex((c) => c.code === code);
-    if (i < 0) {
+  private answerTimed(code: string): AnswerResult {
+    if (code !== this.current!.code) {
       this.misses++;
       this.streak = 0;
       return { kind: 'wrong', attemptsLeft: Infinity };
     }
-    this.queue.unshift(...this.queue.splice(i, 1));
     this.settle(1);
     this.streak++;
     this.bestStreak = Math.max(this.bestStreak, this.streak);
