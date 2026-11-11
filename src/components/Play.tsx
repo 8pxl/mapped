@@ -2,11 +2,77 @@ import { useEffect, useLayoutEffect, useReducer, useRef } from 'react';
 import type { Country } from '../data';
 import { formatTime, MAX_ATTEMPTS } from '../game';
 import { MapView } from '../map';
-import { choicesFor, registerMap, useStore, type Session, type Toast } from '../store';
+import { boardFor, registerMap, struckFor, useStore, type Session, type Toast } from '../store';
 import { Results } from './Results';
 import { Badge, modeTitle } from './shared';
 
 export function Play() {
+  const mode = useStore((s) => s.session!.game.mode);
+  return mode === 'pick' ? <FlagPlay /> : <MapPlay />;
+}
+
+/** Pick the flag has no map: a board of every flag in the region, and a card naming the one to pick. */
+function FlagPlay() {
+  const session = useStore((s) => s.session)!;
+  useStore((s) => s.tick);
+  const noMap = useRef<MapView | null>(null);
+  const ticketRef = useRef<HTMLDivElement>(null);
+  useKeys(noMap);
+  return (
+    <main id="play" className="screen" data-mode="pick" style={{ '--line': session.def.color } as React.CSSProperties}>
+      <Hud session={session} />
+      <div className="board-host">
+        <FlagBoard session={session} />
+        <Ticket ref={ticketRef} session={session} />
+        <ToastView />
+        {session.finished && !session.resultsOpen && (
+          <button id="show-results" className="btn" onClick={() => useStore.getState().setResultsOpen(true)}>
+            Show results
+          </button>
+        )}
+      </div>
+      <Results />
+    </main>
+  );
+}
+
+const OUTCOME_CLASS = { 1: 'c1', 2: 'c2', 3: 'c3', 0: 'missed' } as const;
+
+function FlagBoard({ session }: { session: Session }) {
+  const hints = useStore((s) => s.hints);
+  const { game, pending, finished } = session;
+  const { order } = boardFor(session);
+  const target = pending ?? game.current;
+  const struck = target && !finished ? struckFor(session, target) : null;
+  return (
+    <div className="flag-board">
+      {order.map((c) => {
+        const outcome = game.results.get(c.code);
+        const isAnswer = pending?.code === c.code;
+        const done = outcome !== undefined && !isAnswer;
+        const out = !!struck?.has(c.code);
+        // Names show once they're no help: found, a wrong pick (so the miss teaches), hints on, or the round over.
+        const named = done || out || hints || finished || isAnswer;
+        return (
+          <button
+            key={c.code}
+            className={`flag-cell${done ? ` done ${OUTCOME_CLASS[outcome]}` : ''}${out ? ' struck' : ''}${isAnswer ? ' answer' : ''}`}
+            // After three misses the right flag may be scrolled away: bring it into view.
+            ref={isAnswer ? (el) => el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) : undefined}
+            disabled={done || out || finished}
+            onClick={() => useStore.getState().pickFlag(c.code)}
+            aria-label={named ? c.name : 'Flag'}
+          >
+            <img className="flag" src={c.flag} alt="" draggable={false} loading="lazy" />
+            <span className="fc-name">{named ? c.name : ''}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function MapPlay() {
   const session = useStore((s) => s.session)!;
   const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -42,10 +108,8 @@ export function Play() {
         return;
       }
       const found = active && s.game.results.has(shape.code!);
-      // Pick the flag asks about flags, not places, so naming countries on the map gives nothing away.
-      const browsing = s.game.mode === 'pick';
-      const show = !active || found || hints || s.finished || browsing;
-      playEl.classList.toggle('pointing', !browsing && ((active && !found) || shape.code === s.pending?.code));
+      const show = !active || found || hints || s.finished;
+      playEl.classList.toggle('pointing', (active && !found) || shape.code === s.pending?.code);
       tip.hidden = !show;
       if (!show) return;
       tip.textContent = shape.name;
@@ -288,11 +352,9 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
   );
 }
 
-/** Pick the flag's card: the country's name over its flag and five others. Keys 1-6 pick too (see useKeys). */
+/** Pick the flag's card: just the name to pick, the tries and Skip. The flags are on the board. */
 function PickTicket({ session, target, ref }: { session: Session; target: Country; ref: React.Ref<HTMLDivElement> }) {
   const { game, pending } = session;
-  const { choices, struck } = choicesFor(session, target);
-  const pick = (code: string) => useStore.getState().pickFlag(code);
   return (
     <div ref={ref} className={`ticket${pending ? ' missed' : ''}`} aria-live="polite">
       <div className="ticket-label">
@@ -300,7 +362,7 @@ function PickTicket({ session, target, ref }: { session: Session; target: Countr
           <span className="ticket-alert">Missed · pick it to continue</span>
         ) : (
           <>
-            <span>Pick the flag</span>
+            <span>Pick the flag of</span>
             <span className="ticket-count">
               {game.answered + 1} / {game.pool.length}
             </span>
@@ -308,25 +370,6 @@ function PickTicket({ session, target, ref }: { session: Session; target: Countr
         )}
       </div>
       <div className="ticket-name">{target.name}</div>
-      <div className="flag-choices">
-        {choices.map((c, i) => {
-          const isAnswer = !!pending && c.code === target.code;
-          const out = struck.has(c.code);
-          return (
-            <button
-              key={c.code}
-              className={`flag-choice${out ? ' struck' : ''}${isAnswer ? ' answer' : ''}`}
-              disabled={out}
-              onClick={() => pick(c.code)}
-              // Name a struck flag: it was a wrong answer, so saying whose it is helps. The rest stay unnamed.
-              aria-label={out ? `${c.name}, wrong` : `Flag ${i + 1}`}
-            >
-              <img className="flag" src={c.flag} alt="" draggable={false} />
-              <kbd className="pointer-only">{i + 1}</kbd>
-            </button>
-          );
-        })}
-      </div>
       <div className="ticket-foot">
         <span className="pips" aria-label="Attempts">
           {Array.from({ length: MAX_ATTEMPTS }, (_, i) => (
@@ -371,13 +414,6 @@ function useKeys(viewRef: React.RefObject<MapView | null>) {
         if (!e.repeat) view?.pickAtPointer();
       }
       if (e.key === 's' || e.key === 'S') skip();
-      // Pick the flag: 1-6 pick the flags in the order shown.
-      const n = Number(e.key);
-      if (session.game.mode === 'pick' && n >= 1 && !e.repeat) {
-        const target = session.pending ?? session.game.current;
-        const choice = target && choicesFor(session, target).choices[n - 1];
-        if (choice) useStore.getState().pickFlag(choice.code);
-      }
       if (e.key === '+' || e.key === '=') view?.zoomBy(1.8);
       if (e.key === '-') view?.zoomBy(1 / 1.8);
       if (e.key === '0') view?.resetZoom();

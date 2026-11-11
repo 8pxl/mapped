@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { create } from 'zustand';
 import { isMuted, setMuted, sfx } from './audio';
-import { COUNTRIES, countriesFor, countryByCode, type Country } from './data';
-import { flagChoices, Game, isComboMilestone, parseMode, saveBest, type Mode, type Outcome } from './game';
+import { countriesFor, countryByCode, type Country } from './data';
+import { Game, isComboMilestone, parseMode, saveBest, shuffle, type Mode, type Outcome } from './game';
 import type { MapView, Paint, PickEvent } from './map';
 import { readPref, writePref } from './prefs';
 import { dueCodes, loadDeck, recordOutcome } from './review';
@@ -83,7 +83,7 @@ interface State {
   goMenu: () => void;
   applyRoute: () => void;
   pick: (e: PickEvent) => void;
-  /** An answer in Pick the flag: the country whose flag was picked. */
+  /** An answer in Pick the flag: the country whose flag was picked on the board. */
   pickFlag: (code: string) => void;
   skip: () => void;
   showToast: (content: ReactNode, tone?: Toast['tone']) => void;
@@ -97,15 +97,21 @@ export const registerMap = (m: MapView | null) => {
 };
 export const getMap = () => map;
 
-/** Pick the flag's choices per question, and the wrong ones already picked. Kept per game, so a skipped question
- * comes back with the same flags and its misses still struck out. */
-const choiceCache = new WeakMap<Game, Map<string, { choices: Country[]; struck: Set<string> }>>();
-export function choicesFor(s: Session, target: Country) {
-  let byCode = choiceCache.get(s.game);
-  if (!byCode) choiceCache.set(s.game, (byCode = new Map()));
-  let entry = byCode.get(target.code);
-  if (!entry) byCode.set(target.code, (entry = { choices: flagChoices(target, s.field, COUNTRIES), struck: new Set() }));
-  return entry;
+/**
+ * Pick the flag's board: every flag on the round's map, shuffled once per game, and per question the wrong flags
+ * already picked for it. A skipped question comes back with its misses still struck out.
+ */
+const boards = new WeakMap<Game, { order: Country[]; struck: Map<string, Set<string>> }>();
+export function boardFor(s: Session) {
+  let board = boards.get(s.game);
+  if (!board) boards.set(s.game, (board = { order: shuffle([...s.field]), struck: new Map() }));
+  return board;
+}
+export function struckFor(s: Session, target: Country) {
+  const { struck } = boardFor(s);
+  let set = struck.get(target.code);
+  if (!set) struck.set(target.code, (set = new Set()));
+  return set;
 }
 
 let toastTimer = 0;
@@ -278,12 +284,6 @@ export const useStore = create<State>()((set, get) => {
       const toast = get().showToast;
       const shake = () => set((st) => ({ shake: st.shake + 1 }));
 
-      // In Pick the flag the map is for looking: answers are flags on the card. A tap names what it hit.
-      if (game.mode === 'pick') {
-        if (shape.name) toast(<>{shape.name}</>);
-        return;
-      }
-
       if (s.pending) {
         if (shape.code !== s.pending.code) {
           toast(
@@ -384,7 +384,7 @@ export const useStore = create<State>()((set, get) => {
 
     pickFlag: (code) => {
       const s = get().session;
-      if (!s || !map || s.finished) return;
+      if (!s || s.finished) return;
       const { game } = s;
       const toast = get().showToast;
       const shake = () => set((st) => ({ shake: st.shake + 1 }));
@@ -394,16 +394,13 @@ export const useStore = create<State>()((set, get) => {
         if (code !== s.pending.code) {
           toast(
             <>
-              That's {picked.name}'s flag. <small>Pick the flashing one</small>
+              That's {picked.name}. <small>Pick the flashing flag</small>
             </>,
             'bad',
           );
           shake();
           return;
         }
-        map.clearReveal();
-        const at = map.centroidOf(code);
-        if (at) map.stamp(at, code, 'missed');
         sfx.click();
         toast(
           <>
@@ -414,31 +411,22 @@ export const useStore = create<State>()((set, get) => {
         advance();
         return;
       }
-      if (game.done) return;
+      if (game.done || game.results.has(code)) return;
       const target = game.current!;
-      const { struck } = choicesFor(s, target);
+      const struck = struckFor(s, target);
       if (struck.has(code)) return;
       const r = game.answer(code);
       if (r.kind === 'correct') {
         recordOutcome(game.mode, code, r.attempt as Outcome, !get().hints);
-        const paint = PAINT_FOR[r.attempt as Outcome];
-        map.paint(code, paint);
-        const at = map.centroidOf(code);
-        if (at) map.stamp(at, code, paint);
         if (r.attempt === 1) sfx.correct(r.streak);
         else sfx.late();
-        if (r.attempt === 1 && isComboMilestone(r.streak)) {
-          sfx.combo(r.streak);
-          if (at && !matchMedia('(prefers-reduced-motion: reduce)').matches) map.combo(at, r.streak);
-        }
+        if (r.attempt === 1 && isComboMilestone(r.streak)) sfx.combo(r.streak);
         clearTimeout(toastTimer);
         set({ toast: null });
         advance();
         return;
       }
       struck.add(code);
-      // Light up the country the wrong flag belongs to, so the miss teaches something.
-      map.flash(code);
       shake();
       if (r.kind === 'wrong') {
         sfx.wrong();
@@ -453,12 +441,10 @@ export const useStore = create<State>()((set, get) => {
         return;
       }
       recordOutcome(game.mode, target.code, 0);
-      map.paint(target.code, 'missed');
-      map.reveal(target.code);
       sfx.reveal();
       toast(
         <>
-          That's {picked.name}. <b>{target.name}</b> <small>is the flashing flag, pick it</small>
+          That's {picked.name}. <b>{target.name}</b> <small>is flashing, pick it</small>
         </>,
         'bad',
       );

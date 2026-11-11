@@ -1850,85 +1850,137 @@ kbd {
 
 /* ---------- Pick the flag ---------- */
 
+/* No map: the board of flags scrolls under the card, padded clear of it. */
+.board-host {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--sea);
+}
+
+.flag-board {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  align-content: start;
+  gap: 14px 12px;
+  padding: 16px 16px 72px 332px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
 #play[data-mode='pick'] .ticket {
   width: 300px;
 }
 
-#play[data-mode='pick'] .ticket-name {
-  margin: 0 0 12px;
-}
-
-.flag-choices {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.flag-choice {
-  position: relative;
+.flag-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
   padding: 0;
+  color: var(--white);
   background: none;
   border: 0;
   border-radius: 8px;
   transition: transform 160ms var(--ease-out);
 }
 
-.flag-choice .flag {
+.flag-cell .flag {
   transition: box-shadow 160ms var(--ease-out), opacity 200ms, filter 200ms;
 }
 
 @media (hover: hover) {
-  .flag-choice:not(:disabled):hover .flag {
+  .flag-cell:not(:disabled):hover .flag {
     box-shadow: 0 0 0 2px var(--white);
   }
 }
 
-.flag-choice:not(:disabled):active {
+.flag-cell:not(:disabled):active {
   transform: scale(0.96);
 }
 
-.flag-choice kbd {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  color: #fff;
-  background: #000000b0;
-  border-color: #ffffff60;
-  opacity: 1;
+.fc-name {
+  height: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.02em;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* A wrong pick: greyed out and crossed, so it can't be picked twice. */
-.flag-choice.struck {
+/* Found: ringed in how it went, like the map's paint, and named. */
+.flag-cell.done {
   cursor: default;
 }
 
-.flag-choice.struck .flag {
-  opacity: 0.22;
+.flag-cell.done .flag {
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.flag-cell.c1 {
+  --ring: var(--c1);
+}
+.flag-cell.c2 {
+  --ring: var(--c2);
+}
+.flag-cell.c3 {
+  --ring: var(--c3);
+}
+.flag-cell.missed {
+  --ring: var(--red);
+}
+
+.flag-cell.done .fc-name {
+  color: var(--ring);
+  animation: name-in 300ms var(--ease-out);
+}
+
+@keyframes name-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* A wrong pick for this question: greyed and crossed, named so the miss teaches. */
+.flag-cell.struck {
+  position: relative;
+  cursor: default;
+}
+
+.flag-cell.struck .flag {
+  opacity: 0.35;
   filter: grayscale(1);
 }
 
-.flag-choice.struck::after {
+.flag-cell.struck::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(to top right, transparent calc(50% - 1.5px), var(--red) calc(50% - 1.5px), var(--red) calc(50% + 1.5px), transparent calc(50% + 1.5px));
+  inset: 0 0 20px;
+  background: linear-gradient(to top right, transparent calc(50% - 1.5px), var(--red) calc(50% - 1.5px), var(--red) calc(50% + 1.5px), transparent calc(50% + 1.5px));
   border-radius: 8px;
   pointer-events: none;
 }
 
-.flag-choice.struck kbd {
-  display: none;
+.flag-cell.struck .fc-name {
+  color: var(--mute);
 }
 
-/* After three misses: the right flag blinks in red, the rest fade back. */
-.ticket.missed .flag-choice:not(.answer) .flag {
-  opacity: 0.22;
-}
-
-.flag-choice.answer .flag {
+/* After three misses: the right flag blinks in red until it's picked. */
+.flag-cell.answer .flag {
   box-shadow: 0 0 0 3px var(--red);
   animation: blink-ring 0.9s steps(1) infinite;
+}
+
+.flag-cell.answer .fc-name {
+  color: var(--red);
 }
 
 @keyframes blink-ring {
@@ -2716,25 +2768,23 @@ kbd {
     grid-template-columns: 150px 1fr;
   }
 
-  /* Pick the flag stacks instead: name, then two rows of three flags. */
+  /* Pick the flag: a short card at the bottom, the board scrolling above and behind it. */
   #play[data-mode='pick'] .ticket {
     display: block;
+    right: 10px;
     width: auto;
-  }
-
-  #play[data-mode='pick'] .ticket-name {
-    margin-bottom: 10px;
-  }
-
-  .flag-choices {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
   }
 
   #play[data-mode='pick'] .ticket-foot {
     flex-direction: row;
     align-items: center;
     margin-top: 10px;
+  }
+
+  .flag-board {
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 10px 8px;
+    padding: 12px 12px 150px;
   }
 
   .ticket-foot {

@@ -179,11 +179,6 @@ export class MapView {
   }
 
   /** Drops a station badge in the country's own colour (white when it was missed). */
-  /** A country's centre in map coordinates, for effects that aren't at a click. */
-  centroidOf(code: string) {
-    return this.centroids.get(code) ?? null;
-  }
-
   stamp(at: [number, number], code: string, paint: Paint) {
     this.addFx(at, stampFx(paint === 'missed' ? 'var(--missed)' : colourOf(code), code.toUpperCase()), 1500);
   }

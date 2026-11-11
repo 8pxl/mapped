@@ -1,6 +1,6 @@
 import type { Country } from './data';
 
-/** Find a named country on the map; find a flag's country on the map; or pick a named country's flag from a few. */
+/** Find a named country on the map; find a flag's country on the map; or pick a named country's flag off a board. */
 export type Mode = 'name' | 'flag' | 'pick';
 export const isMode = (m: unknown): m is Mode => m === 'name' || m === 'flag' || m === 'pick';
 /** The game type a link asks for: `?mode=flag` or `?mode=pick`, else Name + Flag. */
@@ -96,25 +96,12 @@ export class Game {
   }
 }
 
-function shuffle<T>(a: T[]) {
+export function shuffle<T>(a: T[]) {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
-}
-
-/** Flags offered per question in Pick the flag. */
-export const CHOICES = 6;
-
-/**
- * The flags offered for `target`: it and five others, shuffled. The others come from the round's map (`field`), so
- * the choices are neighbours that are easy to mix up; a map too small for that tops up from `all`.
- */
-export function flagChoices<T extends { code: string }>(target: T, field: T[], all: T[]) {
-  const near = shuffle(field.filter((c) => c.code !== target.code));
-  const far = shuffle(all.filter((c) => c.code !== target.code && !near.includes(c)));
-  return shuffle([target, ...[...near, ...far].slice(0, CHOICES - 1)]);
 }
 
 /** First-try streaks worth a popup: 3, 5, 10, then every 5. */
