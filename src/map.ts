@@ -300,9 +300,14 @@ export class MapView {
     if (this.revealed) this.placeReveal();
 
     const maxK = region.id === 'world' ? 48 : 24;
+    const [[sx0, sy0], [sx1, sy1]] = this.path.bounds({ type: 'Sphere' });
     this.zoomer
       .scaleExtent([1, maxK])
-      .translateExtent([[-inset.left, -inset.top], [w + inset.right, h + inset.bottom]])
+      // Pan as far as the drawn globe reaches, not just the region's frame, so neighbours stay a drag away.
+      .translateExtent([
+        [Math.min(-inset.left, sx0), Math.min(-inset.top, sy0)],
+        [Math.max(w + inset.right, sx1), Math.max(h + inset.bottom, sy1)],
+      ])
       .extent([[0, 0], [w, h]]);
     this.sel.call(this.zoomer).on('dblclick.zoom', null);
     this.home = this.homeView(region, inset, w, h);
