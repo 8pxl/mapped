@@ -3209,12 +3209,7 @@ kbd {
   padding: 16px 18px;
   background: var(--panel-2);
   border-radius: 12px;
-  box-shadow: inset 4px 0 0 var(--mute);
   animation: name-in 300ms var(--ease-out);
-}
-
-.daily-answer.right {
-  box-shadow: inset 4px 0 0 var(--c1);
 }
 
 .daily-verdict {
