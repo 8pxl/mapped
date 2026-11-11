@@ -9,7 +9,7 @@ import { CountryList, PickerTabs, ReviewList } from './CountryPicker';
 import { RegionPicker, type PickerHandle } from './RegionPicker';
 import { Settings } from './Settings';
 import { Badge, MODES } from './shared';
-import { dailyStreak, loadRun, PENALTY_MS, themeFor, todayNumber, untilNext } from '../daily';
+import { dailyStreak, loadRun, themeFor, todayNumber, untilNext } from '../daily';
 
 const ALL = CONTINENTS.map((c) => c.id as ContinentId);
 
@@ -286,15 +286,8 @@ function DailyPanel() {
   });
   return (
     <section className="daily-panel" aria-labelledby="daily-title">
-      <p className="eyebrow">
+      <p className="eyebrow" id="daily-title">
         Daily #{n} <span className="daily-date">· {date}</span>
-      </p>
-      <h1 className="daily-headline" id="daily-title">
-        {theme.codes.length} countries with something in common
-      </h1>
-      <p className="daily-how">
-        Find them one at a time, as fast as you can: each wrong click adds {PENALTY_MS / 1000} seconds. Then guess what
-        links them.
       </p>
       {run && (
         <div className="daily-run">

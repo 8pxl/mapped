@@ -3009,28 +3009,6 @@ kbd {
   letter-spacing: 0.08em;
 }
 
-.daily-headline {
-  margin: 4px 0 16px;
-  font-weight: 900;
-  font-size: clamp(32px, 7vw, 56px);
-  line-height: 0.98;
-  letter-spacing: -0.04em;
-  text-wrap: balance;
-}
-
-.daily-how {
-  max-width: 460px;
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--mute);
-  text-wrap: pretty;
-}
-
-.daily-how b {
-  color: var(--white);
-}
-
 .daily-run {
   width: 100%;
   margin-top: 28px;
