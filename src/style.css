@@ -3254,3 +3254,26 @@ kbd {
   }
 
 }
+
+/* ---------- Finger-sized targets ----------
+   Small buttons keep their look but get an invisible hit area of at least 44px on touch screens. */
+
+@media (pointer: coarse) {
+  :is(.btn-ghost, .share-btn, .linkish) {
+    position: relative;
+  }
+
+  :is(.btn-ghost, .share-btn, .linkish, .region-pill)::after {
+    content: '';
+    position: absolute;
+    inset: -8px -4px;
+  }
+
+  .linkish::after {
+    inset: -13px -10px;
+  }
+
+  .region-pill::after {
+    inset: -8px;
+  }
+}
