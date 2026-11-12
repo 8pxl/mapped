@@ -3277,3 +3277,110 @@ kbd {
     inset: -8px;
   }
 }
+
+/* ---------- Phone in landscape ----------
+   Wide enough for the desktop layout but short: the desktop card's big flag would fill the height and the menu's
+   "map it!" would sit below the fold. */
+
+@media (max-height: 500px) and (min-width: 761px) {
+  .ticket {
+    top: 10px;
+    left: 10px;
+    width: 290px;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    column-gap: 12px;
+    align-items: center;
+    padding: 12px;
+  }
+
+  #play[data-mode='flag'] .ticket {
+    grid-template-columns: 150px 1fr;
+  }
+
+  .ticket-label {
+    grid-column: 1 / -1;
+    margin-bottom: 8px;
+  }
+
+  .ticket-body {
+    display: contents;
+  }
+
+  .ticket-name {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .ticket-foot,
+  .ticket .daily-rule {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+  }
+
+  #play[data-mode='pick'] .ticket {
+    display: block;
+    width: 290px;
+  }
+
+  .flag-board {
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    gap: 10px 8px;
+    padding: 10px 10px 40px 312px;
+  }
+
+  .cta {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    gap: 8px;
+    margin: 0 calc(-1 * clamp(16px, 4vw, 40px));
+    padding: 20px 16px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(transparent, #000 32%);
+  }
+
+  .map-it {
+    height: 48px;
+  }
+}
+
+/* ---------- Top bar on tablets ----------
+   Three columns don't fit a long region name, the progress track and the streak pill: give the track its own row. */
+
+@media (max-width: 900px) {
+  .hud {
+    grid-template-columns: 1fr auto;
+    gap: 10px 12px;
+  }
+
+  .hud-mid {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+.hud-title > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud .icon-btn {
+  flex: none;
+}
+
+/* A phone on its side has width to spare but no height: keep one row and drop the extras, as the phone layout does. */
+@media (max-height: 500px) and (min-width: 761px) {
+  .hud {
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 300px) minmax(0, 1fr);
+  }
+
+  .hud-mid {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  #hud-badge,
+  .streak {
+    display: none;
+  }
+}
