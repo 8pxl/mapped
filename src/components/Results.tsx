@@ -1,5 +1,6 @@
 import { sfx } from '../audio';
-import { COLOUR_OF, countriesFor, type Country } from '../data';
+import { COLOUR_OF } from '../atlas';
+import { countriesFor, type Country } from '../data';
 import { useEffect, useRef, useState } from 'react';
 import { formatTime, type Outcome } from '../game';
 import { beats, describe, runOf, shareScore, shareText } from '../share';

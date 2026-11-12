@@ -1,7 +1,26 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Menu } from './components/Menu';
-import { Play } from './components/Play';
 import { useStore } from './store';
+
+// The play screen carries the detailed world atlas, about half the download. Load it apart so the menu shows
+// sooner on a slow connection, and start fetching it as soon as the first screen is up.
+const loadPlay = () => import('./components/Play');
+const Play = lazy(() => loadPlay().then((m) => ({ default: m.Play })));
+
+/** Shown while the play screen's code downloads. Matches the splash in index.html. */
+function Loading() {
+  return (
+    <div className="boot" role="status">
+      <span className="boot-lines" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+      </span>
+      <span>Loading the map…</span>
+    </div>
+  );
+}
 
 export function App() {
   const screen = useStore((s) => s.screen);
@@ -29,5 +48,15 @@ export function App() {
     document.title = title;
   }, [title]);
 
-  return screen === 'play' ? <Play /> : <Menu />;
+  useEffect(() => {
+    void loadPlay();
+  }, []);
+
+  return screen === 'play' ? (
+    <Suspense fallback={<Loading />}>
+      <Play />
+    </Suspense>
+  ) : (
+    <Menu />
+  );
 }
