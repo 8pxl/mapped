@@ -256,6 +256,11 @@ function Hud({ session }: { session: Session }) {
           <small>Time</small>
           <b className="figure">{formatTime(game.elapsed)}</b>
         </span>
+        <button className="icon-btn" id="restart" onClick={() => useStore.getState().restart()} aria-label="Restart round" title="Restart (R)">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v5h5" />
+          </svg>
+        </button>
         <button className={`icon-btn${muted ? ' off' : ''}`} onClick={() => useStore.getState().toggleMuted()} aria-label={muted ? 'Unmute' : 'Mute'}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 9h4l5-4v14l-5-4H4z" />
@@ -419,8 +424,14 @@ function ToastView() {
 function useKeys(viewRef: React.RefObject<MapView | null>) {
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => {
-      const { session, skip, goMenu } = useStore.getState();
-      if (!session || session.resultsOpen || e.metaKey || e.ctrlKey) return;
+      const { session, skip, goMenu, restart } = useStore.getState();
+      if (!session || e.metaKey || e.ctrlKey || e.altKey) return;
+      if ((e.key === 'r' || e.key === 'R') && !e.repeat && !(e.target as HTMLElement).closest('input, textarea')) {
+        // Works from the results too, as a quick "play again".
+        restart();
+        return;
+      }
+      if (session.resultsOpen) return;
       const view = viewRef.current;
       if (e.key === ' ') {
         // Space picks whatever is under the cursor; keep it from also pressing a focused button.

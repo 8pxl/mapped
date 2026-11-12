@@ -89,6 +89,8 @@ interface State {
   startSelected: () => void;
   /** Plays today's daily puzzle. */
   startDaily: () => void;
+  /** Starts the current round over with the same countries. */
+  restart: () => void;
   setSection: (section: Section) => void;
   goMenu: () => void;
   applyRoute: () => void;
@@ -273,6 +275,14 @@ export const useStore = create<State>()((set, get) => {
           daily: { n, theme, first: !loadRun(n) },
         },
       });
+    },
+
+    restart: () => {
+      const { session, start, startDaily } = get();
+      if (!session) return;
+      if (session.daily) return startDaily();
+      if (session.full) return start(session.def, countriesFor(session.def), true);
+      start(session.def, session.game.pool, false, session.field);
     },
 
     startSelected: () => {

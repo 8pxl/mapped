@@ -44,6 +44,12 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
           </div>
           <div>
             <dt>
+              <kbd>R</kbd>
+            </dt>
+            <dd>Restart the round</dd>
+          </div>
+          <div>
+            <dt>
               <kbd>Pinch</kbd> <kbd>⌘ scroll</kbd>
             </dt>
             <dd>Zoom</dd>
