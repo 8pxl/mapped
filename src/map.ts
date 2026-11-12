@@ -19,6 +19,8 @@ export interface PickEvent {
   active: boolean;
   /** Point clicked, in map (pre-zoom) coordinates. */
   at: [number, number];
+  /** Other playable countries under the same point, when the click landed in a marker's touch ring. */
+  alts?: Shape[];
 }
 
 export interface ClientPoint {
@@ -543,13 +545,27 @@ export class MapView {
 
   private handleClick(e: MouseEvent) {
     const shape = this.shapeAt(e.target);
-    if (shape) this.pick(shape, e);
+    if (!shape) return;
+    // A marker's touch ring reaches well past its dot: on a phone San Marino's covers the middle of Italy.
+    // A click in the ring counts as the land under it, with every playable shape there passed along so the
+    // game can take the one the player was asked for.
+    if ((e.target as Element).classList?.contains('hit')) {
+      const under: Shape[] = [];
+      for (const h of document.elementsFromPoint(e.clientX, e.clientY)) {
+        if (!this.svg.contains(h)) continue;
+        const s = this.shapeAt(h);
+        if (s?.code && this.active.has(s.code) && !under.includes(s)) under.push(s);
+      }
+      const land = under.find((s) => !this.markers.has(s.code!));
+      if (land) return this.pick(land, e, under);
+    }
+    this.pick(shape, e);
   }
 
-  private pick(shape: Shape, p: ClientPoint) {
+  private pick(shape: Shape, p: ClientPoint, alts?: Shape[]) {
     const rect = this.svg.getBoundingClientRect();
     const at = this.transform.invert([p.clientX - rect.left, p.clientY - rect.top]);
-    this.onPick({ shape, active: !!shape.code && this.active.has(shape.code), at });
+    this.onPick({ shape, active: !!shape.code && this.active.has(shape.code), at, alts });
   }
 
   private handleHover(e: PointerEvent) {

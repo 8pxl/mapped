@@ -327,10 +327,16 @@ export const useStore = create<State>()((set, get) => {
       get().start(def, countriesFor(def), true);
     },
 
-    pick: ({ shape, active, at }) => {
+    pick: ({ shape, active, at, alts }) => {
       const s = get().session;
       if (!s || !map) return;
       const { game } = s;
+      // A tap in a microstate's touch ring could mean it or the land around it: take the one being asked for.
+      const wanted = alts?.find((a) => a.code === (s.pending?.code ?? game.current?.code));
+      if (wanted) {
+        shape = wanted;
+        active = true;
+      }
       const toast = get().showToast;
       const shake = () => set((st) => ({ shake: st.shake + 1 }));
 
