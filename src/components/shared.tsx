@@ -7,6 +7,7 @@ export const MODES: { id: Mode; code: string; title: string; blurb: string }[] =
   { id: 'name', code: 'N+F', title: 'Name + Flag', blurb: 'See the name and flag. Find the country on the map.' },
   { id: 'flag', code: 'F', title: 'Flag only', blurb: 'See only the flag. Work out the country, then find it.' },
   { id: 'pick', code: 'N→F', title: 'Pick the flag', blurb: 'See the name. Pick its flag from every flag in the region.' },
+  { id: 'capital', code: 'C', title: 'Capitals', blurb: 'See a capital city. Find its country on the map.' },
 ];
 
 export const modeTitle = (m: Mode) => MODES.find((x) => x.id === m)!.title;

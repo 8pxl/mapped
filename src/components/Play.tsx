@@ -318,6 +318,7 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
   if (!current) return <div ref={setRef} className="ticket" />;
   if (game.mode === 'pick') return <PickTicket ref={setRef} session={session} target={current} />;
   const flagOnly = game.mode === 'flag';
+  const capital = game.mode === 'capital';
 
   if (pending)
     return (
@@ -328,6 +329,7 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
         <div className="ticket-body">
           <img className="flag" src={pending.flag} alt={`Flag of ${pending.name}`} draggable={false} />
           <div className="ticket-name">{pending.name}</div>
+          {capital && <div className="ticket-sub">Capital: {pending.capital}</div>}
         </div>
         <div className="ticket-foot">
           <span className="pips" aria-label="Attempts">
@@ -343,14 +345,20 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
   return (
     <div ref={setRef} className="ticket" aria-live="polite">
       <div className="ticket-label">
-        <span>{session.daily ? `Daily #${session.daily.n}` : flagOnly ? 'Whose flag?' : 'Find'}</span>
+        <span>{session.daily ? `Daily #${session.daily.n}` : flagOnly ? 'Whose flag?' : capital ? 'Capital of' : 'Find'}</span>
         <span className="ticket-count">
           {game.answered + 1} / {game.pool.length}
         </span>
       </div>
       <div className="ticket-body">
-        <img className="flag" src={current.flag} alt={flagOnly ? 'Flag to find' : `Flag of ${current.name}`} draggable={false} />
-        {flagOnly ? <div className="ticket-name unknown">?</div> : <div className="ticket-name">{current.name}</div>}
+        {capital ? (
+          <div className="ticket-name">{current.capital}</div>
+        ) : (
+          <>
+            <img className="flag" src={current.flag} alt={flagOnly ? 'Flag to find' : `Flag of ${current.name}`} draggable={false} />
+            {flagOnly ? <div className="ticket-name unknown">?</div> : <div className="ticket-name">{current.name}</div>}
+          </>
+        )}
       </div>
       {session.daily ? (
         // The daily has no tries or skipping: a country stays until it's found, and misses cost time.

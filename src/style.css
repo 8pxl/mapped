@@ -1002,6 +1002,10 @@ kbd {
   background: #2f6fe8;
 }
 
+.route-capital {
+  background: #9b51e0;
+}
+
 /* ---------- Settings ---------- */
 
 .settings {
@@ -2057,6 +2061,18 @@ kbd {
   display: none;
 }
 
+.ticket-sub {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--mute);
+}
+
+/* Capitals: no flag, so the city name takes the card. */
+#play[data-mode='capital'] .ticket-label + .ticket-body > .ticket-name:first-child {
+  margin-top: 6px;
+}
+
 .ticket-foot {
   display: flex;
   align-items: center;
@@ -2800,6 +2816,17 @@ kbd {
     margin: 0;
   }
 
+  /* Capitals: no flag column, the city and the foot run full width. */
+  #play[data-mode='capital'] .ticket:not(:has(.flag)) :is(.ticket-name, .ticket-foot) {
+    grid-column: 1 / -1;
+  }
+
+  #play[data-mode='capital'] .ticket:not(:has(.flag)) .ticket-foot {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 10px;
+  }
+
   .zoom {
     right: 10px;
     bottom: 10px;
@@ -2935,12 +2962,12 @@ kbd {
   }
 }
 
-/* Three game tabs don't fit a phone in a row: three equal columns, the badge above the name. */
+/* The game tabs don't fit a phone in a row: equal columns, the badge above the name. */
 @media (max-width: 520px) {
   .mode-tabs,
   .mode-tabs-active {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     width: 100%;
   }
 
@@ -3321,6 +3348,10 @@ kbd {
   #play[data-mode='pick'] .ticket {
     display: block;
     width: 290px;
+  }
+
+  #play[data-mode='capital'] .ticket:not(:has(.flag)) .ticket-name {
+    grid-column: 1 / -1;
   }
 
   .flag-board {

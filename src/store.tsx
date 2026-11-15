@@ -445,13 +445,17 @@ export const useStore = create<State>()((set, get) => {
         sfx.wrong();
         navigator.vibrate?.(35);
         shake();
-        // Point toward the answer; in Flag-only mode say where it is without naming it.
+        // Point toward the answer; in Flag only and Capitals say where it is without naming it.
         const hint = map.pointToward(at, target.code);
         const where = hint ? `${hint.km ? `${hint.km.toLocaleString()} km ` : ''}${hint.dir}` : '';
-        const subject = game.mode === 'flag' ? "It's" : `${target.name} is`;
+        const hidden = game.mode === 'flag' || game.mode === 'capital';
+        const subject = hidden ? "It's" : `${target.name} is`;
+        // In Capitals, name the clicked country's capital too, so a miss still teaches one.
+        const theirs = game.mode === 'capital' && shape.code ? countryByCode.get(shape.code)?.capital : null;
         toast(
           <>
-            That's {shape.name}.{' '}
+            That's {shape.name}
+            {theirs ? `, capital ${theirs}` : ''}.{' '}
             <small>{where ? `${subject} ${where}` : `${r.attemptsLeft} ${r.attemptsLeft === 1 ? 'try' : 'tries'} left`}</small>
           </>,
           'bad',

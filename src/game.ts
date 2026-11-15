@@ -1,9 +1,9 @@
 import type { Country } from './data';
 
 /** Find a named country on the map; find a flag's country on the map; or pick a named country's flag off a board. */
-export type Mode = 'name' | 'flag' | 'pick';
-export const isMode = (m: unknown): m is Mode => m === 'name' || m === 'flag' || m === 'pick';
-/** The game type a link asks for: `?mode=flag` or `?mode=pick`, else Name + Flag. */
+export type Mode = 'name' | 'flag' | 'pick' | 'capital';
+export const isMode = (m: unknown): m is Mode => m === 'name' || m === 'flag' || m === 'pick' || m === 'capital';
+/** The game type a link asks for: `?mode=flag`, `?mode=pick` or `?mode=capital`, else Name + Flag. */
 export const parseMode = (m: string | null): Mode => (isMode(m) ? m : 'name');
 export const MAX_ATTEMPTS = 3;
 /** Share of a point earned when the right country is found on the 1st, 2nd or 3rd try. */

@@ -109,7 +109,7 @@ export function Results() {
                     <li key={c.code}>
                       <Swatch country={c} outcome={o} />
                       <img src={c.flag} alt="" />
-                      <span>{c.name}</span>
+                      <span>{g.mode === 'capital' ? `${c.capital}, ${c.name}` : c.name}</span>
                       <em>{o ? `${o} tries` : 'Missed'}</em>
                     </li>
                   );
