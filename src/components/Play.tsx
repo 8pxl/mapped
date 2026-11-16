@@ -345,7 +345,7 @@ function Ticket({ session, ref }: { session: Session; ref: React.Ref<HTMLDivElem
   return (
     <div ref={setRef} className="ticket" aria-live="polite">
       <div className="ticket-label">
-        <span>{session.daily ? `Daily #${session.daily.n}` : flagOnly ? 'Whose flag?' : capital ? 'Capital of' : 'Find'}</span>
+        <span>{session.daily ? `Daily #${session.daily.n}` : flagOnly ? 'Whose flag?' : capital ? 'Whose capital?' : 'Find'}</span>
         <span className="ticket-count">
           {game.answered + 1} / {game.pool.length}
         </span>
