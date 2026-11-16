@@ -4,7 +4,7 @@ import { COUNTRIES, countryByCode, type Country } from '../data';
 import { dueLabel, progressOf, type Deck } from '../review';
 import { CONTINENTS, type RegionDef } from '../regions';
 import type { PickerTab } from '../store';
-import { Badge } from './shared';
+import { Badge, Segmented } from './shared';
 
 const TABS: { id: PickerTab; label: string }[] = [
   { id: 'map', label: 'Regions' },
@@ -14,24 +14,26 @@ const TABS: { id: PickerTab; label: string }[] = [
 
 export function PickerTabs({ tab, due, onChange }: { tab: PickerTab; due: number; onChange: (t: PickerTab) => void }) {
   return (
-    <div className="picker-tabs" role="tablist" aria-label="What to play">
-      {TABS.map((t) => (
-        <button
-          key={t.id}
-          role="tab"
-          aria-selected={t.id === tab}
-          className="picker-tab"
-          onClick={() => {
-            if (t.id === tab) return;
-            sfx.click();
-            onChange(t.id);
-          }}
-        >
-          {t.label}
-          {t.id === 'review' && due > 0 && <span className="due-count">{due}</span>}
-        </button>
-      ))}
-    </div>
+    <Segmented
+      kind="tabs"
+      className="picker-tabs"
+      itemClassName="picker-tab"
+      aria-label="What to play"
+      items={TABS.map((t) => ({
+        id: t.id,
+        label: (
+          <>
+            {t.label}
+            {t.id === 'review' && due > 0 && <span className="due-count">{due}</span>}
+          </>
+        ),
+      }))}
+      value={tab}
+      onChange={(id) => {
+        sfx.click();
+        onChange(id);
+      }}
+    />
   );
 }
 

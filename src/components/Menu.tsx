@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { sfx } from '../audio';
 import { countriesFor } from '../data';
 import { formatTime, loadBest, type Mode } from '../game';
@@ -8,7 +8,7 @@ import { dueCodes, loadDeck, removeCard } from '../review';
 import { CountryList, PickerTabs, ReviewList } from './CountryPicker';
 import { RegionPicker, type PickerHandle } from './RegionPicker';
 import { Settings } from './Settings';
-import { Badge, MODES } from './shared';
+import { Badge, MODES, Segmented } from './shared';
 import { dailyStreak, loadRun, themeFor, todayNumber, untilNext } from '../daily';
 
 const ALL = CONTINENTS.map((c) => c.id as ContinentId);
@@ -93,21 +93,20 @@ export function Menu() {
           </button>
         </header>
 
-        <nav className="section-nav" aria-label="Sections">
-          {(['daily', 'learn'] as const).map((id) => (
-            <button
-              key={id}
-              aria-current={section === id ? 'page' : undefined}
-              onClick={() => {
-                if (section === id) return;
-                sfx.click();
-                setSection(id);
-              }}
-            >
-              {id === 'daily' ? 'Daily' : 'Learn'}
-            </button>
-          ))}
-        </nav>
+        <Segmented
+          kind="nav"
+          className="section-nav"
+          aria-label="Sections"
+          items={[
+            { id: 'daily' as const, label: 'Daily' },
+            { id: 'learn' as const, label: 'Learn' },
+          ]}
+          value={section}
+          onChange={(id) => {
+            sfx.click();
+            setSection(id);
+          }}
+        />
 
         {section === 'daily' ? (
           <DailyPanel />
@@ -209,60 +208,26 @@ export function Menu() {
   );
 }
 
-/**
- * Game tabs. The active look is a second copy of the tabs, clipped to the selected one; the clip slides on change,
- * so the highlight's colour and position move as one (see the tab-indicator recipe).
- */
+/** Game tabs: each game's route badge and its name. */
 function ModeTabs({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
-  const row = useRef<HTMLDivElement>(null);
-  const tabs = useRef(new Map<Mode, HTMLButtonElement>());
-  const [clip, setClip] = useState('inset(0 100% 0 0 round 12px)');
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      const tab = tabs.current.get(mode);
-      const box = row.current;
-      if (!tab || !box) return;
-      const left = tab.offsetLeft;
-      const right = box.scrollWidth - left - tab.offsetWidth;
-      setClip(`inset(0 ${right}px 0 ${left}px round 12px)`);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(row.current!);
-    return () => ro.disconnect();
-  }, [mode]);
-
-  const render = (active: boolean) =>
-    MODES.map((m) => (
-      <button
-        key={m.id}
-        ref={
-          active
-            ? undefined
-            : (el) => {
-                if (el) tabs.current.set(m.id, el);
-              }
-        }
-        className="mode-tab"
-        data-mode={active ? undefined : m.id}
-        role={active ? undefined : 'radio'}
-        aria-checked={active ? undefined : m.id === mode}
-        tabIndex={active ? -1 : undefined}
-        onClick={active ? undefined : () => m.id !== mode && onChange(m.id)}
-      >
-        <span className={`route route-${m.id}`}>{m.code}</span>
-        <span>{m.title}</span>
-      </button>
-    ));
-
   return (
-    <div className="mode-tabs" ref={row} role="radiogroup" aria-labelledby="game-label">
-      {render(false)}
-      <div className="mode-tabs-active" aria-hidden="true" style={{ clipPath: clip }}>
-        {render(true)}
-      </div>
-    </div>
+    <Segmented
+      kind="radio"
+      className="mode-tabs"
+      itemClassName="mode-tab"
+      aria-labelledby="game-label"
+      items={MODES.map((m) => ({
+        id: m.id,
+        label: (
+          <>
+            <span className={`route route-${m.id}`}>{m.code}</span>
+            <span>{m.title}</span>
+          </>
+        ),
+      }))}
+      value={mode}
+      onChange={onChange}
+    />
   );
 }
 

@@ -250,24 +250,44 @@ kbd {
   background: var(--white);
 }
 
-/* Game tabs. The highlighted look is a clipped copy of the row; the clip slides between tabs. */
-.mode-tabs {
+/* ---------- Selectors (Daily | Learn, the game, what to play) ----------
+   The highlighted look is a clipped copy of the row (.seg-active) that lays out like the row and slides between options. */
+.seg {
   position: relative;
+}
+
+.seg-active {
+  position: absolute;
+  inset: 0;
+  display: inherit;
+  grid-template-columns: inherit;
+  align-items: inherit;
+  gap: inherit;
+  padding: inherit;
+  pointer-events: none;
+  transition: clip-path 250ms var(--ease-in-out);
+}
+
+.seg-active .seg-item {
+  color: #000;
+  background: var(--white);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seg-active {
+    transition: none;
+  }
+}
+
+/* Game tabs */
+.mode-tabs {
   display: flex;
   gap: 8px;
   width: fit-content;
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
-}
-
-.mode-tabs-active {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  gap: 8px;
-  pointer-events: none;
-  transition: clip-path 250ms var(--ease-in-out);
 }
 
 .mode-tab {
@@ -283,12 +303,6 @@ kbd {
   border: 0;
   border-radius: 12px;
   box-shadow: inset 0 0 0 1px var(--rule-2);
-}
-
-.mode-tabs-active .mode-tab {
-  color: #000;
-  background: var(--white);
-  box-shadow: none;
 }
 
 .mode-tab .route {
@@ -520,12 +534,6 @@ kbd {
 
 .picker-tab:active {
   transform: scale(0.96);
-}
-
-.picker-tab[aria-selected='true'] {
-  color: #000;
-  background: var(--white);
-  box-shadow: none;
 }
 
 .due-count {
@@ -2964,8 +2972,7 @@ kbd {
 
 /* The game tabs don't fit a phone in a row: equal columns, the badge above the name. */
 @media (max-width: 520px) {
-  .mode-tabs,
-  .mode-tabs-active {
+  .mode-tabs {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     width: 100%;
@@ -3005,11 +3012,6 @@ kbd {
   border: 0;
   border-radius: 999px;
   transition: background 200ms var(--ease-out), color 200ms var(--ease-out);
-}
-
-.section-nav button[aria-current] {
-  color: #000;
-  background: var(--white);
 }
 
 @media (hover: hover) {
