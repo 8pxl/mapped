@@ -36,6 +36,7 @@ export function islandZones(sites: Site[], width: number, height: number, outlin
   for (const [code, cells] of cellsByCode) {
     const zone = mergeCells(cells, outline);
     if (zone?.length) zones.set(code, zone);
+    else if (!zone) console.warn(`island zone for ${code} left out: the merge failed`);
   }
   return zones;
 }
