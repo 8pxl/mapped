@@ -34,13 +34,46 @@ export function islandZones(sites: Site[], width: number, height: number, outlin
     cellsByCode.set(site.code, [...(cellsByCode.get(site.code) ?? []), [clipped]]);
   });
   for (const [code, cells] of cellsByCode) {
-    const [first, ...rest] = cells;
-    let zone = polygonClipping.union(first, ...rest);
-    // Keep zones on the globe: never past the map's outer edge.
-    if (outline) zone = polygonClipping.intersection(zone, [outline]);
-    if (zone.length) zones.set(code, zone as Point[][][]);
+    const zone = mergeCells(cells, outline);
+    if (zone?.length) zones.set(code, zone);
   }
   return zones;
+}
+
+/**
+ * polygon-clipping's sweep line can throw on near-coincident points ("Unable to find segment", "Infinite loop…"),
+ * and whether it does depends on the exact projected coordinates, so on the screen size. Snapping the points to a
+ * grid removes the slivers; if a merge still fails, try a coarser grid, and in the end leave the zone out: the
+ * island itself stays clickable. A failure here must never stop the map from drawing.
+ */
+const SNAPS = [1 / 64, 1 / 8, 1];
+
+function mergeCells(cells: ClipPolygon[], outline?: Point[]): Point[][][] | null {
+  for (const grid of SNAPS) {
+    try {
+      const [first, ...rest] = cells.map((poly) => poly.map((ring) => snapRing(ring as Point[], grid)).filter((ring) => ring.length >= 3));
+      if (!first?.length) return null;
+      let zone = polygonClipping.union(first, ...rest.filter((p) => p.length));
+      // Keep zones on the globe: never past the map's outer edge.
+      if (outline) zone = polygonClipping.intersection(zone, [snapRing(outline, grid)]);
+      return zone as Point[][][];
+    } catch {
+      // Try the next, coarser grid.
+    }
+  }
+  return null;
+}
+
+/** Rounds a ring's points to the grid and drops the repeats that rounding makes. */
+function snapRing(ring: Point[], grid: number): Point[] {
+  const out: Point[] = [];
+  for (const [x, y] of ring) {
+    const p: Point = [Math.round(x / grid) * grid, Math.round(y / grid) * grid];
+    const last = out[out.length - 1];
+    if (!last || last[0] !== p[0] || last[1] !== p[1]) out.push(p);
+  }
+  while (out.length > 1 && out[0][0] === out[out.length - 1][0] && out[0][1] === out[out.length - 1][1]) out.pop();
+  return out;
 }
 
 export const zonePath = (zone: Point[][][]) =>

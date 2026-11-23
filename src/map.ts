@@ -354,7 +354,15 @@ export class MapView {
       const at = this.centroids.get(c.code);
       if (at) sites.push({ at, code: c.code, box: padBox([at], pad) });
     }
-    for (const [code, zone] of islandZones(sites, w, h, sphereOutline(this.path))) {
+    let zones: ReturnType<typeof islandZones>;
+    try {
+      zones = islandZones(sites, w, h, sphereOutline(this.path));
+    } catch (err) {
+      // Zones only widen the click area around small islands; the round must still draw without them.
+      console.error('island zones failed', err);
+      return;
+    }
+    for (const [code, zone] of zones) {
       const p = el<SVGPathElement>('path', { class: 'zone', d: zonePath(zone), 'data-key': code });
       this.zoneLayer.append(p);
       this.zones.set(code, p);
